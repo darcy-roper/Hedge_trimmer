@@ -1,0 +1,163 @@
+{
+  "timestamp": "2025-06-08T15:00:26.377515",
+  "matches": [
+    {
+      "home_team": "North Melbourne",
+      "away_team": "West Coast Eagles",
+      "match_time": "2025-06-08T15:20:00.000+10:00",
+      "odds": {
+        "sportsbet": {
+          "home": 1.62,
+          "away": 2.31
+        },
+        "ladbrokes": {
+          "home": 1.6,
+          "away": 2.3
+        }
+      }
+    },
+    {
+      "home_team": "Carlton",
+      "away_team": "Essendon",
+      "match_time": "2025-06-08T19:20:00.000+10:00",
+      "odds": {
+        "sportsbet": {
+          "home": 1.4,
+          "away": 2.96
+        },
+        "ladbrokes": {
+          "home": 1.44,
+          "away": 2.8
+        },
+        "pointsbet": {
+          "home": 1.42,
+          "away": 2.9
+        }
+      }
+    },
+    {
+      "home_team": "Melbourne",
+      "away_team": "Collingwood",
+      "match_time": "2025-06-09T15:20:00.000+10:00",
+      "odds": {
+        "sportsbet": {
+          "home": 4.1,
+          "away": 1.24
+        },
+        "ladbrokes": {
+          "home": 3.9,
+          "away": 1.25
+        },
+        "pointsbet": {
+          "home": 4.0,
+          "away": 1.25
+        }
+      }
+    },
+    {
+      "home_team": "St Kilda",
+      "away_team": "Western Bulldogs",
+      "match_time": "4 days",
+      "odds": {
+        "sportsbet": {
+          "home": 3.44,
+          "away": 1.32
+        },
+        "ladbrokes": {
+          "home": 3.25,
+          "away": 1.33
+        }
+      }
+    },
+    {
+      "home_team": "Hawthorn",
+      "away_team": "Adelaide Crows",
+      "match_time": "5 days",
+      "odds": {
+        "sportsbet": {
+          "home": 1.90,
+          "away": 1.94
+        },
+        "ladbrokes": {
+          "home": 1.85,
+          "away": 1.95
+        }
+      }
+    },
+    {
+      "home_team": "Brisbane Lions",
+      "away_team": "GWS Giants",
+      "match_time": "6 days",
+      "odds": {
+        "sportsbet": {
+          "home": 1.36,
+          "away": 3.19
+        },
+        "ladbrokes": {
+          "home": 1.4,
+          "away": 2.95
+        }
+      }
+    },
+    {
+      "home_team": "Essendon",
+      "away_team": "Geelong Cats",
+      "match_time": "6 days",
+      "odds": {
+        "sportsbet": {
+          "home": 4.60,
+          "away": 1.20
+        },
+        "ladbrokes": {
+          "home": 4.5,
+          "away": 1.2
+        }
+      }
+    },
+    {
+      "home_team": "North Melbourne",
+      "away_team": "Fremantle",
+      "match_time": "6 days",
+      "odds": {
+        "sportsbet": {
+          "home": 5.10,
+          "away": 1.17
+        },
+        "ladbrokes": {
+          "home": 5.2,
+          "away": 1.16
+        }
+      }
+    },
+    {
+      "home_team": "Port Adelaide",
+      "away_team": "Melbourne",
+      "match_time": "7 days",
+      "odds": {
+        "sportsbet": {
+          "home": 1.82,
+          "away": 2.02
+        },
+        "ladbrokes": {
+          "home": 1.82,
+          "away": 2.0
+        }
+      }
+    },
+    {
+      "home_team": "West Coast Eagles",
+      "away_team": "Carlton",
+      "match_time": "7 days",
+      "odds": {
+        "sportsbet": {
+          "home": 4.1,
+          "away": 1.24
+        },
+        "ladbrokes": {
+          "home": 4.1,
+          "away": 1.24
+        }
+      }
+    }
+  ]
+}
