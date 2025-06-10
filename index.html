@@ -887,8 +887,6 @@
             
             // Constants
             const maxBetReturn = 50;
-            const baseSingleOddsA = 1.8; // Estimated single odds for favourite
-            const baseSingleOddsB = 2.5; // Estimated single odds for underdog
             
             // Calculate optimal stake distribution
             let multiBetStake = 0;
@@ -905,7 +903,7 @@
                 multiBetStake = totalCapital * initialMultiBetRatio;
                 hedgeStake = totalCapital * (1 - initialMultiBetRatio);
                 multiBetOdds = oddsA;
-                hedgeOdds = baseSingleOddsB;
+                hedgeOdds = oddsB; // Use the actual odds input by user
                 protectedOption = 'A';
                 actualReturn = Math.min(multiBetStake, maxBetReturn);
             } else if (betReturnB && !betReturnA) {
@@ -914,28 +912,33 @@
                 multiBetStake = totalCapital * initialMultiBetRatio;
                 hedgeStake = totalCapital * (1 - initialMultiBetRatio);
                 multiBetOdds = oddsB;
-                hedgeOdds = baseSingleOddsA;
+                hedgeOdds = oddsA; // Use the actual odds input by user
                 protectedOption = 'B';
                 actualReturn = Math.min(multiBetStake, maxBetReturn);
             } else if (betReturnA && betReturnB) {
                 alert('Please select only one bet return option or neither');
                 return;
             } else {
-                // No protection - more conservative split
+                // No protection - use higher odds option as multi-bet for better potential return
                 initialMultiBetRatio = 0.60;
                 multiBetStake = totalCapital * initialMultiBetRatio;
                 hedgeStake = totalCapital * (1 - initialMultiBetRatio);
-                multiBetOdds = oddsA; // Default to option A
-                hedgeOdds = baseSingleOddsB;
-                protectedOption = 'none';
+                if (oddsB > oddsA) {
+                    multiBetOdds = oddsB;
+                    hedgeOdds = oddsA; // Use the actual odds input by user
+                    protectedOption = 'none-B';
+                } else {
+                    multiBetOdds = oddsA;
+                    hedgeOdds = oddsB; // Use the actual odds input by user
+                    protectedOption = 'none-A';
+                }
             }
             
             // Store current calculation state
             currentCalculation = {
                 oddsA, oddsB, totalCapital, betReturnA, betReturnB,
                 multiBetOdds, hedgeOdds, protectedOption, maxBetReturn,
-                baseSingleOddsA, baseSingleOddsB, actualReturn,
-                multiBetStake, hedgeStake
+                actualReturn, multiBetStake, hedgeStake
             };
             
             // Set up sliders with initial values
@@ -944,8 +947,8 @@
             
             document.getElementById('multiBetSlider').value = multiBetPercentage;
             document.getElementById('hedgeBetSlider').value = hedgeBetPercentage;
-            document.getElementById('multiBetSliderAmount').textContent = `$${multiBetStake.toFixed(2)}`;
-            document.getElementById('hedgeBetSliderAmount').textContent = `$${hedgeStake.toFixed(2)}`;
+            document.getElementById('multiBetSliderAmount').textContent = `${multiBetStake.toFixed(2)}`;
+            document.getElementById('hedgeBetSliderAmount').textContent = `${hedgeStake.toFixed(2)}`;
             document.getElementById('multiBetPercentage').textContent = `${multiBetPercentage}%`;
             document.getElementById('hedgeBetPercentage').textContent = `${hedgeBetPercentage}%`;
             
@@ -958,10 +961,10 @@
         
         function displayResults(calc) {
             const { multiBetStake, hedgeStake, multiBetOdds, hedgeOdds, protectedOption, 
-                    maxBetReturn, totalCapital, baseSingleOddsA, baseSingleOddsB } = calc;
+                    maxBetReturn, totalCapital, oddsA, oddsB } = calc;
             
             // Recalculate actualReturn based on current multiBetStake
-            const currentActualReturn = (protectedOption !== 'none') ? Math.min(multiBetStake, maxBetReturn) : 0;
+            const currentActualReturn = (protectedOption !== 'none-A' && protectedOption !== 'none-B') ? Math.min(multiBetStake, maxBetReturn) : 0;
             
             // Calculate returns
             const multiBetReturn = multiBetStake * multiBetOdds;
@@ -998,6 +1001,21 @@
                         hedgeProfit: hedgeReturn - hedgeStake,
                         protectionGained: currentActualReturn,
                         total: -multiBetStake + (hedgeReturn - hedgeStake) + currentActualReturn
+                    }
+                };
+            } else if (protectedOption === 'none-B') {
+                scenarios = {
+                    bWins: {
+                        multiBetProfit: multiBetReturn - multiBetStake,
+                        hedgeLoss: -hedgeStake,
+                        protectionUsed: 0,
+                        total: (multiBetReturn - multiBetStake) - hedgeStake
+                    },
+                    aWins: {
+                        multiBetLoss: -multiBetStake,
+                        hedgeProfit: hedgeReturn - hedgeStake,
+                        protectionUsed: 0,
+                        total: -multiBetStake + (hedgeReturn - hedgeStake)
                     }
                 };
             } else {
@@ -1055,6 +1073,19 @@
                         <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
                         <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
                         <div class="potential-return">Protection: ${currentActualReturn.toFixed(2)} if fails</div>
+                    </div>
+                    <div class="strategy-card">
+                        <h3>Hedge Bet A</h3>
+                        <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
+                    </div>
+                `;
+            } else if (protectedOption === 'none-B') {
+                strategyHtml = `
+                    <div class="strategy-card">
+                        <h3>Multi-Bet B</h3>
+                        <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
                     </div>
                     <div class="strategy-card">
                         <h3>Hedge Bet A</h3>
@@ -1222,6 +1253,56 @@
                         </div>
                     </div>
                 `;
+            } else if (protectedOption === 'none-B') {
+                summaryHtml += `
+                    <div class="scenario-box scenario-win">
+                        <div class="scenario-header">
+                            <div class="scenario-title">✅ If Option B Wins</div>
+                        </div>
+                        <div class="scenario-body">
+                            <div class="calculation-grid">
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Multi-bet profit</span>
+                                    <span class="calc-formula">${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${scenarios.bWins.multiBetProfit.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item negative">
+                                    <span class="calc-label">Hedge bet loss</span>
+                                    <span class="calc-formula">-${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-${hedgeStake.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="total-result">
+                                <div class="total-label">Total Profit</div>
+                                <div class="total-amount">${scenarios.bWins.total.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="scenario-box scenario-lose-bad">
+                        <div class="scenario-header">
+                            <div class="scenario-title">❌ If Option A Wins (No Protection)</div>
+                        </div>
+                        <div class="scenario-body">
+                            <div class="calculation-grid">
+                                <div class="calculation-item negative">
+                                    <span class="calc-label">Multi-bet loss</span>
+                                    <span class="calc-formula">-${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-${multiBetStake.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Hedge bet profit</span>
+                                    <span class="calc-formula">${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${scenarios.aWins.hedgeProfit.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="total-result">
+                                <div class="total-label">Total Result</div>
+                                <div class="total-amount">${scenarios.aWins.total.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             } else {
                 summaryHtml += `
                     <div class="scenario-box scenario-win">
@@ -1277,7 +1358,7 @@
             summaryHtml += `
                 <div style="background: #f0f4f8; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px;">
                     <p style="color: #666; font-size: 0.9em; margin: 0;">
-                        💡 Single leg odds are estimated (A: ${baseSingleOddsA}, B: ${baseSingleOddsB}). Always verify actual odds before placing bets.
+                        💡 Using your input odds: Option A (${oddsA}) and Option B (${oddsB}). Always verify actual odds before placing bets.
                     </p>
                     ${currentActualReturn === maxBetReturn && (multiBetStake > maxBetReturn) ? 
                         '<p style="color: #f59e0b; font-size: 0.85em; margin: 5px 0 0 0;">⚠️ Bet return is capped at $50 despite higher stake</p>' : ''}
