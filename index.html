@@ -288,68 +288,161 @@
         }
         
         .scenario-box {
-            margin-bottom: 15px;
-            border-radius: 12px;
-            padding: 20px;
-            border-left: 4px solid;
+            margin-bottom: 25px;
+            border-radius: 16px;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .scenario-header {
+            padding: 20px 25px 15px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
         }
         
         .scenario-win {
-            background: #e8f5e8;
-            border-left-color: #10b981;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
         }
         
         .scenario-lose {
-            background: #fff3cd;
-            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
         }
         
         .scenario-lose-bad {
-            background: #ffeaa7;
-            border-left-color: #e17055;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
         }
         
         .scenario-title {
-            font-weight: 600;
-            margin-bottom: 15px;
-            font-size: 1.1em;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .scenario-win .scenario-title {
+        .scenario-body {
+            background: white;
+            padding: 25px;
+        }
+        
+        .calculation-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .calculation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 3px solid #e1e5e9;
+        }
+        
+        .calculation-item.positive {
+            background: #f0fdf4;
+            border-left-color: #10b981;
+        }
+        
+        .calculation-item.negative {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+        
+        .calculation-item.neutral {
+            background: #f0f9ff;
+            border-left-color: #3b82f6;
+        }
+        
+        .calc-label {
+            font-weight: 500;
+            color: #374151;
+            flex-grow: 1;
+        }
+        
+        .calc-formula {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85em;
+            color: #6b7280;
+            margin: 0 15px;
+            flex-shrink: 0;
+        }
+        
+        .calc-result {
+            font-weight: 700;
+            font-size: 1.1em;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .calc-result.positive {
             color: #10b981;
         }
         
-        .scenario-lose .scenario-title {
+        .calc-result.negative {
+            color: #ef4444;
+        }
+        
+        .calc-result.neutral {
+            color: #3b82f6;
+        }
+        
+        .total-result {
+            background: white;
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .scenario-win .total-result {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+        
+        .scenario-lose .total-result {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+        
+        .scenario-lose-bad .total-result {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        }
+        
+        .total-label {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .total-amount {
+            font-size: 2em;
+            font-weight: 800;
+            margin: 0;
+        }
+        
+        .scenario-win .total-amount {
+            color: #10b981;
+        }
+        
+        .scenario-lose .total-amount {
             color: #f59e0b;
         }
         
-        .scenario-lose-bad .scenario-title {
-            color: #e17055;
-        }
-        
-        .calculation-steps {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-        
-        .total-line {
-            border-top: 1px solid;
-            margin-top: 10px;
-            padding-top: 10px;
-            font-weight: 600;
-        }
-        
-        .scenario-win .total-line {
-            border-color: #10b981;
-        }
-        
-        .scenario-lose .total-line {
-            border-color: #f59e0b;
-        }
-        
-        .scenario-lose-bad .total-line {
-            border-color: #e17055;
+        .scenario-lose-bad .total-amount {
+            color: #ef4444;
         }
     </style>
 </head>
@@ -639,25 +732,59 @@
             if (protectedOption === 'A') {
                 summaryHtml += `
                     <div class="scenario-box scenario-win">
-                        <div class="scenario-title">✅ If Option A Wins</div>
-                        <div class="calculation-steps">
-                            Multi-bet profit: $${multiBetReturn.toFixed(2)} - $${multiBetStake.toFixed(2)} = <strong>+$${scenarios.aWins.multiBetProfit.toFixed(2)}</strong><br>
-                            Hedge bet loss: <strong>-$${hedgeStake.toFixed(2)}</strong><br>
-                            Protection used: <strong>$0</strong>
-                            <div class="total-line">
-                                <strong>Total Profit: $${scenarios.aWins.total.toFixed(2)}</strong>
+                        <div class="scenario-header">
+                            <div class="scenario-title">✅ If Option A Wins</div>
+                        </div>
+                        <div class="scenario-body">
+                            <div class="calculation-grid">
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Multi-bet profit</span>
+                                    <span class="calc-formula">$${multiBetReturn.toFixed(2)} - $${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+$${scenarios.aWins.multiBetProfit.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item negative">
+                                    <span class="calc-label">Hedge bet loss</span>
+                                    <span class="calc-formula">-$${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-$${hedgeStake.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item neutral">
+                                    <span class="calc-label">Protection used</span>
+                                    <span class="calc-formula">N/A</span>
+                                    <span class="calc-result neutral">$0</span>
+                                </div>
+                            </div>
+                            <div class="total-result">
+                                <div class="total-label">Total Profit</div>
+                                <div class="total-amount">$${scenarios.aWins.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="scenario-box scenario-lose">
-                        <div class="scenario-title">❌ If Option A Loses (Protected)</div>
-                        <div class="calculation-steps">
-                            Multi-bet loss: <strong>-$${multiBetStake.toFixed(2)}</strong><br>
-                            Hedge bet profit: $${hedgeReturn.toFixed(2)} - $${hedgeStake.toFixed(2)} = <strong>+$${scenarios.aLoses.hedgeProfit.toFixed(2)}</strong><br>
-                            Protection refund: <strong>+$${actualReturn.toFixed(2)}</strong> ${actualReturn === maxBetReturn ? '(capped at $50)' : ''}
-                            <div class="total-line">
-                                <strong>Total Result: $${scenarios.aLoses.total.toFixed(2)}</strong>
+                        <div class="scenario-header">
+                            <div class="scenario-title">🛡️ If Option A Loses (Protected)</div>
+                        </div>
+                        <div class="scenario-body">
+                            <div class="calculation-grid">
+                                <div class="calculation-item negative">
+                                    <span class="calc-label">Multi-bet loss</span>
+                                    <span class="calc-formula">-$${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-$${multiBetStake.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Hedge bet profit</span>
+                                    <span class="calc-formula">$${hedgeReturn.toFixed(2)} - $${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+$${scenarios.aLoses.hedgeProfit.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Protection refund ${actualReturn === maxBetReturn ? '(capped)' : ''}</span>
+                                    <span class="calc-formula">+$${actualReturn.toFixed(2)}</span>
+                                    <span class="calc-result positive">+$${actualReturn.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="total-result">
+                                <div class="total-label">Total Result</div>
+                                <div class="total-amount">$${scenarios.aLoses.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
@@ -665,25 +792,59 @@
             } else if (protectedOption === 'B') {
                 summaryHtml += `
                     <div class="scenario-box scenario-win">
-                        <div class="scenario-title">✅ If Option B Wins</div>
-                        <div class="calculation-steps">
-                            Multi-bet profit: $${multiBetReturn.toFixed(2)} - $${multiBetStake.toFixed(2)} = <strong>+$${scenarios.bWins.multiBetProfit.toFixed(2)}</strong><br>
-                            Hedge bet loss: <strong>-$${hedgeStake.toFixed(2)}</strong><br>
-                            Protection used: <strong>$0</strong>
-                            <div class="total-line">
-                                <strong>Total Profit: $${scenarios.bWins.total.toFixed(2)}</strong>
+                        <div class="scenario-header">
+                            <div class="scenario-title">✅ If Option B Wins</div>
+                        </div>
+                        <div class="scenario-body">
+                            <div class="calculation-grid">
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Multi-bet profit</span>
+                                    <span class="calc-formula">${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${scenarios.bWins.multiBetProfit.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item negative">
+                                    <span class="calc-label">Hedge bet loss</span>
+                                    <span class="calc-formula">-${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-${hedgeStake.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item neutral">
+                                    <span class="calc-label">Protection used</span>
+                                    <span class="calc-formula">N/A</span>
+                                    <span class="calc-result neutral">$0</span>
+                                </div>
+                            </div>
+                            <div class="total-result">
+                                <div class="total-label">Total Profit</div>
+                                <div class="total-amount">${scenarios.bWins.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="scenario-box scenario-lose">
-                        <div class="scenario-title">❌ If Option B Loses (Protected)</div>
-                        <div class="calculation-steps">
-                            Multi-bet loss: <strong>-$${multiBetStake.toFixed(2)}</strong><br>
-                            Hedge bet profit: $${hedgeReturn.toFixed(2)} - $${hedgeStake.toFixed(2)} = <strong>+$${scenarios.bLoses.hedgeProfit.toFixed(2)}</strong><br>
-                            Protection refund: <strong>+$${actualReturn.toFixed(2)}</strong> ${actualReturn === maxBetReturn ? '(capped at $50)' : ''}
-                            <div class="total-line">
-                                <strong>Total Result: $${scenarios.bLoses.total.toFixed(2)}</strong>
+                        <div class="scenario-header">
+                            <div class="scenario-title">🛡️ If Option B Loses (Protected)</div>
+                        </div>
+                        <div class="scenario-body">
+                            <div class="calculation-grid">
+                                <div class="calculation-item negative">
+                                    <span class="calc-label">Multi-bet loss</span>
+                                    <span class="calc-formula">-${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-${multiBetStake.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Hedge bet profit</span>
+                                    <span class="calc-formula">${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${scenarios.bLoses.hedgeProfit.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Protection refund ${actualReturn === maxBetReturn ? '(capped)' : ''}</span>
+                                    <span class="calc-formula">+${actualReturn.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${actualReturn.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="total-result">
+                                <div class="total-label">Total Result</div>
+                                <div class="total-amount">${scenarios.bLoses.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
@@ -691,23 +852,49 @@
             } else {
                 summaryHtml += `
                     <div class="scenario-box scenario-win">
-                        <div class="scenario-title">✅ If Option A Wins</div>
-                        <div class="calculation-steps">
-                            Multi-bet profit: $${multiBetReturn.toFixed(2)} - $${multiBetStake.toFixed(2)} = <strong>+$${scenarios.aWins.multiBetProfit.toFixed(2)}</strong><br>
-                            Hedge bet loss: <strong>-$${hedgeStake.toFixed(2)}</strong>
-                            <div class="total-line">
-                                <strong>Total Profit: $${scenarios.aWins.total.toFixed(2)}</strong>
+                        <div class="scenario-header">
+                            <div class="scenario-title">✅ If Option A Wins</div>
+                        </div>
+                        <div class="scenario-body">
+                            <div class="calculation-grid">
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Multi-bet profit</span>
+                                    <span class="calc-formula">${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${scenarios.aWins.multiBetProfit.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item negative">
+                                    <span class="calc-label">Hedge bet loss</span>
+                                    <span class="calc-formula">-${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-${hedgeStake.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="total-result">
+                                <div class="total-label">Total Profit</div>
+                                <div class="total-amount">${scenarios.aWins.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="scenario-box scenario-lose-bad">
-                        <div class="scenario-title">❌ If Option B Wins (No Protection)</div>
-                        <div class="calculation-steps">
-                            Multi-bet loss: <strong>-$${multiBetStake.toFixed(2)}</strong><br>
-                            Hedge bet profit: $${hedgeReturn.toFixed(2)} - $${hedgeStake.toFixed(2)} = <strong>+$${scenarios.bWins.hedgeProfit.toFixed(2)}</strong>
-                            <div class="total-line">
-                                <strong>Total Result: $${scenarios.bWins.total.toFixed(2)}</strong>
+                        <div class="scenario-header">
+                            <div class="scenario-title">❌ If Option B Wins (No Protection)</div>
+                        </div>
+                        <div class="scenario-body">
+                            <div class="calculation-grid">
+                                <div class="calculation-item negative">
+                                    <span class="calc-label">Multi-bet loss</span>
+                                    <span class="calc-formula">-${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-${multiBetStake.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-item positive">
+                                    <span class="calc-label">Hedge bet profit</span>
+                                    <span class="calc-formula">${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${scenarios.bWins.hedgeProfit.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="total-result">
+                                <div class="total-label">Total Result</div>
+                                <div class="total-amount">${scenarios.bWins.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
