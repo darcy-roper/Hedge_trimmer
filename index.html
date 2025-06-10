@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Betting Arbitrage Calculator</title>
+    <title>Multi-Bet Hedging Calculator</title>
     <style>
         * {
             margin: 0;
@@ -34,211 +34,6 @@
             margin-bottom: 30px;
             font-size: 2.5em;
             font-weight: 700;
-        }
-        
-        .input-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .platform-input {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .platform-input:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-            border-color: #667eea;
-        }
-        
-        .platform-input label {
-            display: block;
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-        
-        .platform-input input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-        
-        .platform-input input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .total-input {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .total-input label {
-            display: block;
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 8px;
-            font-size: 1.2em;
-        }
-        
-        .total-input input {
-            width: 200px;
-            padding: 12px 15px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 1.2em;
-            text-align: center;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-        }
-        
-        .total-input input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .calculate-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 1.2em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 30px;
-        }
-        
-        .calculate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-        
-        .results {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            margin-top: 20px;
-        }
-        
-        .arbitrage-opportunity {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-        
-        .no-arbitrage {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-        
-        .strategy-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .strategy-card {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .strategy-card h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-        
-        .bet-amount {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #10b981;
-            margin-bottom: 5px;
-        }
-        
-        .potential-return {
-            color: #666;
-            font-size: 0.95em;
-        }
-        
-        .summary {
-            background: #f0f4f8;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .profit {
-            font-size: 1.5em;
-            font-weight: 700;
-            color: #10b981;
-            margin-bottom: 10px;
-        }
-        
-        .roi {
-            color: #666;
-            font-size: 1.1em;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .mode-btn {
-            padding: 10px 20px;
-            margin: 0 10px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .mode-btn.active, .mode-btn:hover {
-            background: #667eea;
-            color: white;
         }
         
         .multi-section {
@@ -300,7 +95,7 @@
             font-size: 1.1em;
         }
         
-        .outcome-card input {
+        .outcome-card input[type="number"] {
             width: 100%;
             padding: 10px;
             border: 2px solid #e1e5e9;
@@ -309,9 +104,41 @@
             margin-bottom: 5px;
         }
         
-        .outcome-card input:focus {
+        .outcome-card input[type="number"]:focus {
             outline: none;
             border-color: #667eea;
+        }
+        
+        .bet-return-option {
+            margin-top: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e1e5e9;
+            transition: all 0.3s ease;
+        }
+        
+        .bet-return-option:hover {
+            border-color: #667eea;
+        }
+        
+        .bet-return-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .bet-return-option label {
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #555;
+        }
+        
+        .bet-return-option input[type="checkbox"] {
+            margin: 0;
+            transform: scale(1.2);
         }
         
         .stake-input {
@@ -334,6 +161,95 @@
             border-radius: 10px;
             font-size: 1.1em;
             text-align: center;
+        }
+        
+        .stake-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .calculate-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .results {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            margin-top: 20px;
+        }
+        
+        .arbitrage-opportunity {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .strategy-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .strategy-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .bet-amount {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+        
+        .potential-return {
+            color: #666;
+            font-size: 0.95em;
+        }
+        
+        .summary {
+            background: #f0f4f8;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .hidden {
+            display: none;
         }
         
         .capital-breakdown {
@@ -439,86 +355,55 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Arbitrage & Multi-Bet Calculator</h1>
+        <h1>🎯 Multi-Bet Hedging Calculator</h1>
         
-        <div style="text-align: center; margin-bottom: 30px;">
-            <button class="mode-btn active" onclick="switchMode('arbitrage')">Arbitrage Mode</button>
-            <button class="mode-btn" onclick="switchMode('multi')">Multi-Bet Hedging</button>
-        </div>
-        
-        <div id="arbitrageSection">
-            <div class="input-section">
-                <div class="platform-input">
-                    <label for="odds1">SportsBet Odds</label>
-                    <input type="number" id="odds1" step="0.01" min="1.01" placeholder="e.g., 2.50">
+        <div class="multi-section">
+            <h3>Multi-Bet Setup</h3>
+            <div class="legs-input">
+                <label for="numLegs">Number of guaranteed legs:</label>
+                <select id="numLegs">
+                    <option value="1">1 leg</option>
+                    <option value="2" selected>2 legs</option>
+                    <option value="3">3 legs</option>
+                    <option value="4">4 legs</option>
+                    <option value="5">5 legs</option>
+                </select>
+            </div>
+            
+            <div class="outcome-section">
+                <div class="outcome-card">
+                    <h4>Option A (Favourite)</h4>
+                    <input type="number" id="oddsA" step="0.01" min="1.01" placeholder="2.20" value="2.20">
+                    <small>Multi-bet odds with favourite to win</small>
+                    <div class="bet-return-option" id="returnOptionA">
+                        <label>
+                            <input type="checkbox" id="betReturnA">
+                            Bet Return if leg fails (max $50)
+                        </label>
+                    </div>
                 </div>
-                <div class="platform-input">
-                    <label for="odds2">Ladbrokes Odds</label>
-                    <input type="number" id="odds2" step="0.01" min="1.01" placeholder="e.g., 2.75">
-                </div>
-                <div class="platform-input">
-                    <label for="odds3">PointsBet Odds</label>
-                    <input type="number" id="odds3" step="0.01" min="1.01" placeholder="e.g., 2.60">
+                <div class="outcome-card">
+                    <h4>Option B (Underdog)</h4>
+                    <input type="number" id="oddsB" step="0.01" min="1.01" placeholder="4.75" value="4.75">
+                    <small>Multi-bet odds with underdog to win</small>
+                    <div class="bet-return-option" id="returnOptionB">
+                        <label>
+                            <input type="checkbox" id="betReturnB">
+                            Bet Return if leg fails (max $50)
+                        </label>
+                    </div>
                 </div>
             </div>
             
-            <div class="total-input">
-                <label for="totalAmount">Total Amount to Bet ($)</label>
-                <input type="number" id="totalAmount" step="0.01" min="1" placeholder="1000">
+            <div class="stake-input">
+                <label for="totalCapital">Total Capital Available ($)</label>
+                <input type="number" id="totalCapital" step="0.01" min="1" placeholder="100">
+                <small style="display: block; margin-top: 8px; color: #666;">
+                    This will be split optimally between multi-bet and hedge positions
+                </small>
             </div>
             
-            <button class="calculate-btn" onclick="calculateArbitrage()">Calculate Arbitrage Strategy</button>
-        </div>
-
-        <div id="multiSection" class="hidden">
-            <div class="multi-section">
-                <h3>Multi-Bet Setup</h3>
-                <div class="legs-input">
-                    <label for="numLegs">Number of guaranteed legs:</label>
-                    <select id="numLegs">
-                        <option value="1">1 leg</option>
-                        <option value="2" selected>2 legs</option>
-                        <option value="3">3 legs</option>
-                        <option value="4">4 legs</option>
-                        <option value="5">5 legs</option>
-                    </select>
-                </div>
-                
-                <div class="outcome-section">
-                    <div class="outcome-card">
-                        <h4>Option A (Favourite)</h4>
-                        <input type="number" id="oddsA" step="0.01" min="1.01" placeholder="2.20" value="2.20">
-                        <small>Multi-bet odds with favourite to win</small>
-                        <div style="margin-top: 10px;">
-                            <label style="font-size: 0.9em; display: flex; align-items: center; gap: 5px;">
-                                <input type="checkbox" id="betReturnA" onchange="updateBetReturn('A')">
-                                Bet Return if leg fails (max $50)
-                            </label>
-                        </div>
-                    </div>
-                    <div class="outcome-card">
-                        <h4>Option B (Underdog)</h4>
-                        <input type="number" id="oddsB" step="0.01" min="1.01" placeholder="4.75" value="4.75">
-                        <small>Multi-bet odds with underdog to win</small>
-                        <div style="margin-top: 10px;">
-                            <label style="font-size: 0.9em; display: flex; align-items: center; gap: 5px;">
-                                <input type="checkbox" id="betReturnB" onchange="updateBetReturn('B')">
-                                Bet Return if leg fails (max $50)
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stake-input">
-                    <label for="totalCapital">Total Capital Available ($)</label>
-                    <input type="number" id="totalCapital" step="0.01" min="1" placeholder="100">
-                    <small style="display: block; margin-top: 8px; color: #666;">
-                        This will be split optimally between multi-bet and hedge positions
-                    </small>
-                </div>
-                
-                <button class="calculate-btn" onclick="calculateMultiHedge()">Calculate Hedging Strategy</button>
-            </div>
+            <button class="calculate-btn" onclick="calculateMultiHedge()">Calculate Hedging Strategy</button>
         </div>
         
         <div id="results" class="results hidden">
@@ -529,132 +414,33 @@
     </div>
 
     <script>
-        function switchMode(mode) {
-            const arbitrageSection = document.getElementById('arbitrageSection');
-            const multiSection = document.getElementById('multiSection');
-            const results = document.getElementById('results');
-            const buttons = document.querySelectorAll('.mode-btn');
-            
-            // Hide results when switching modes
-            results.classList.add('hidden');
-            
-            if (mode === 'arbitrage') {
-                arbitrageSection.classList.remove('hidden');
-                multiSection.classList.add('hidden');
-                buttons[0].classList.add('active');
-                buttons[1].classList.remove('active');
-            } else if (mode === 'multi') {
-                arbitrageSection.classList.add('hidden');
-                multiSection.classList.remove('hidden');
-                buttons[0].classList.remove('active');
-                buttons[1].classList.add('active');
-            }
-        }
+        // Handle bet return option selection
+        document.getElementById('betReturnA').addEventListener('change', function() {
+            updateBetReturnVisual('A');
+        });
         
-        function updateBetReturn(option) {
+        document.getElementById('betReturnB').addEventListener('change', function() {
+            updateBetReturnVisual('B');
+        });
+        
+        function updateBetReturnVisual(option) {
+            const optionA = document.getElementById('returnOptionA');
+            const optionB = document.getElementById('returnOptionB');
             const checkboxA = document.getElementById('betReturnA');
             const checkboxB = document.getElementById('betReturnB');
             
-            // Only allow one bet option to be selected
-            if (option === 'A') {
-                if (checkboxA.checked) {
-                    checkboxB.checked = false;
-                }
+            // Update visual styling
+            if (checkboxA.checked) {
+                optionA.classList.add('selected');
             } else {
-                if (checkboxB.checked) {
-                    checkboxA.checked = false;
-                }
-            }
-        }
-        
-        function calculateArbitrage() {
-            const odds1 = parseFloat(document.getElementById('odds1').value);
-            const odds2 = parseFloat(document.getElementById('odds2').value);
-            const odds3 = parseFloat(document.getElementById('odds3').value);
-            const totalAmount = parseFloat(document.getElementById('totalAmount').value);
-            
-            if (!odds1 || !odds2 || !odds3 || !totalAmount) {
-                alert('Please fill in all fields with valid numbers');
-                return;
+                optionA.classList.remove('selected');
             }
             
-            // Calculate implied probabilities
-            const prob1 = 1 / odds1;
-            const prob2 = 1 / odds2;
-            const prob3 = 1 / odds3;
-            const totalProb = prob1 + prob2 + prob3;
-            
-            // Check if arbitrage opportunity exists
-            const isArbitrage = totalProb < 1;
-            const arbitragePercentage = ((1 - totalProb) * 100).toFixed(2);
-            
-            // Calculate optimal bet amounts
-            const bet1 = (totalAmount * prob1 / totalProb).toFixed(2);
-            const bet2 = (totalAmount * prob2 / totalProb).toFixed(2);
-            const bet3 = (totalAmount * prob3 / totalProb).toFixed(2);
-            
-            // Calculate potential returns
-            const return1 = (bet1 * odds1).toFixed(2);
-            const return2 = (bet2 * odds2).toFixed(2);
-            const return3 = (bet3 * odds3).toFixed(2);
-            
-            // Calculate guaranteed profit
-            const guaranteedReturn = Math.min(return1, return2, return3);
-            const profit = (guaranteedReturn - totalAmount).toFixed(2);
-            const roi = ((profit / totalAmount) * 100).toFixed(2);
-            
-            // Display results
-            const resultsDiv = document.getElementById('results');
-            const opportunityDiv = document.getElementById('opportunityStatus');
-            const strategyDiv = document.getElementById('strategy');
-            const summaryDiv = document.getElementById('summary');
-            
-            if (isArbitrage) {
-                opportunityDiv.innerHTML = `
-                    <div class="arbitrage-opportunity">
-                        ✅ Arbitrage Opportunity Found! (${arbitragePercentage}% edge)
-                    </div>
-                `;
+            if (checkboxB.checked) {
+                optionB.classList.add('selected');
             } else {
-                opportunityDiv.innerHTML = `
-                    <div class="no-arbitrage">
-                        ❌ No Arbitrage Opportunity (${Math.abs(arbitragePercentage)}% overround)
-                    </div>
-                `;
+                optionB.classList.remove('selected');
             }
-            
-            strategyDiv.innerHTML = `
-                <div class="strategy-card">
-                    <h3>SportsBet (${odds1})</h3>
-                    <div class="bet-amount">$${bet1}</div>
-                    <div class="potential-return">Returns: $${return1}</div>
-                </div>
-                <div class="strategy-card">
-                    <h3>Ladbrokes (${odds2})</h3>
-                    <div class="bet-amount">$${bet2}</div>
-                    <div class="potential-return">Returns: $${return2}</div>
-                </div>
-                <div class="strategy-card">
-                    <h3>PointsBet (${odds3})</h3>
-                    <div class="bet-amount">$${bet3}</div>
-                    <div class="potential-return">Returns: $${return3}</div>
-                </div>
-            `;
-            
-            if (isArbitrage) {
-                summaryDiv.innerHTML = `
-                    <div class="profit">Guaranteed Profit: $${profit}</div>
-                    <div class="roi">ROI: ${roi}%</div>
-                `;
-            } else {
-                summaryDiv.innerHTML = `
-                    <div class="profit" style="color: #f59e0b;">Expected Loss: $${Math.abs(profit)}</div>
-                    <div class="roi">ROI: ${roi}%</div>
-                    <p style="margin-top: 10px; color: #666;">This is not profitable arbitrage. Consider betting on the platform with the highest odds instead.</p>
-                `;
-            }
-            
-            resultsDiv.classList.remove('hidden');
         }
         
         function calculateMultiHedge() {
@@ -667,21 +453,6 @@
             if (!oddsA || !oddsB || !totalCapital) {
                 alert('Please fill in all fields with valid numbers');
                 return;
-            }
-            
-            // Auto-assign bet return to the option with lower odds (higher probability = more capital at risk)
-            const shouldAutoAssign = !betReturnA && !betReturnB;
-            let actualBetReturnA = betReturnA;
-            let actualBetReturnB = betReturnB;
-            
-            if (shouldAutoAssign) {
-                if (oddsA < oddsB) {
-                    actualBetReturnA = true;
-                    document.getElementById('betReturnA').checked = true;
-                } else {
-                    actualBetReturnB = true;
-                    document.getElementById('betReturnB').checked = true;
-                }
             }
             
             // Constants
@@ -697,7 +468,7 @@
             let protectedOption = '';
             let actualReturn = 0;
             
-            if (actualBetReturnA) {
+            if (betReturnA && !betReturnB) {
                 // Option A protected - allocate more to multi-bet since it's safer
                 multiBetStake = totalCapital * 0.75; // 75% to protected multi-bet
                 hedgeStake = totalCapital * 0.25; // 25% to hedge
@@ -705,7 +476,7 @@
                 hedgeOdds = baseSingleOddsB;
                 protectedOption = 'A';
                 actualReturn = Math.min(multiBetStake, maxBetReturn);
-            } else if (actualBetReturnB) {
+            } else if (betReturnB && !betReturnA) {
                 // Option B protected
                 multiBetStake = totalCapital * 0.75;
                 hedgeStake = totalCapital * 0.25;
@@ -713,6 +484,9 @@
                 hedgeOdds = baseSingleOddsA;
                 protectedOption = 'B';
                 actualReturn = Math.min(multiBetStake, maxBetReturn);
+            } else if (betReturnA && betReturnB) {
+                alert('Please select only one bet return option or neither');
+                return;
             } else {
                 // No protection - more conservative split
                 multiBetStake = totalCapital * 0.60; // 60% to multi-bet
@@ -782,7 +556,7 @@
             const strategyDiv = document.getElementById('strategy');
             const summaryDiv = document.getElementById('summary');
             
-            const protectionStatus = actualBetReturnA || actualBetReturnB ? 
+            const protectionStatus = (betReturnA || betReturnB) ? 
                 `🛡️ Protected Hedging Strategy` : 
                 `📊 Standard Hedging Strategy`;
             
@@ -800,7 +574,7 @@
                         <h3>Multi-Bet A (Protected) 🛡️</h3>
                         <div class="bet-amount">$${multiBetStake.toFixed(2)}</div>
                         <div class="potential-return">Odds: ${multiBetOdds} | Return: $${multiBetReturn.toFixed(2)}</div>
-                        <div class="potential-return">Protection: $${actualReturn} if fails</div>
+                        <div class="potential-return">Protection: $${actualReturn.toFixed(2)} if fails</div>
                     </div>
                     <div class="strategy-card">
                         <h3>Hedge Bet B</h3>
@@ -812,27 +586,27 @@
                 strategyHtml = `
                     <div class="strategy-card">
                         <h3>Multi-Bet B (Protected) 🛡️</h3>
-                        <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
-                        <div class="potential-return">Protection: ${actualReturn} if fails</div>
+                        <div class="bet-amount">$${multiBetStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${multiBetOdds} | Return: $${multiBetReturn.toFixed(2)}</div>
+                        <div class="potential-return">Protection: $${actualReturn.toFixed(2)} if fails</div>
                     </div>
                     <div class="strategy-card">
                         <h3>Hedge Bet A</h3>
-                        <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
+                        <div class="bet-amount">$${hedgeStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${hedgeOdds} | Return: $${hedgeReturn.toFixed(2)}</div>
                     </div>
                 `;
             } else {
                 strategyHtml = `
                     <div class="strategy-card">
                         <h3>Multi-Bet A</h3>
-                        <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
+                        <div class="bet-amount">$${multiBetStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${multiBetOdds} | Return: $${multiBetReturn.toFixed(2)}</div>
                     </div>
                     <div class="strategy-card">
                         <h3>Hedge Bet B</h3>
-                        <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
+                        <div class="bet-amount">$${hedgeStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${hedgeOdds} | Return: $${hedgeReturn.toFixed(2)}</div>
                     </div>
                 `;
             }
@@ -846,15 +620,15 @@
                     <div class="capital-grid">
                         <div class="capital-item">
                             <strong>Total Capital</strong>
-                            <div class="capital-amount">${totalCapital.toFixed(2)}</div>
+                            <div class="capital-amount">$${totalCapital.toFixed(2)}</div>
                         </div>
                         <div class="capital-item">
                             <strong>Multi-Bet</strong>
-                            <div class="capital-amount">${multiBetStake.toFixed(2)}</div>
+                            <div class="capital-amount">$${multiBetStake.toFixed(2)}</div>
                         </div>
                         <div class="capital-item">
                             <strong>Hedge Bet</strong>
-                            <div class="capital-amount">${hedgeStake.toFixed(2)}</div>
+                            <div class="capital-amount">$${hedgeStake.toFixed(2)}</div>
                         </div>
                     </div>
                 </div>
@@ -867,11 +641,11 @@
                     <div class="scenario-box scenario-win">
                         <div class="scenario-title">✅ If Option A Wins</div>
                         <div class="calculation-steps">
-                            Multi-bet profit: ${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)} = <strong>+${scenarios.aWins.multiBetProfit.toFixed(2)}</strong><br>
-                            Hedge bet loss: <strong>-${hedgeStake.toFixed(2)}</strong><br>
+                            Multi-bet profit: $${multiBetReturn.toFixed(2)} - $${multiBetStake.toFixed(2)} = <strong>+$${scenarios.aWins.multiBetProfit.toFixed(2)}</strong><br>
+                            Hedge bet loss: <strong>-$${hedgeStake.toFixed(2)}</strong><br>
                             Protection used: <strong>$0</strong>
                             <div class="total-line">
-                                <strong>Total Profit: ${scenarios.aWins.total.toFixed(2)}</strong>
+                                <strong>Total Profit: $${scenarios.aWins.total.toFixed(2)}</strong>
                             </div>
                         </div>
                     </div>
@@ -879,11 +653,11 @@
                     <div class="scenario-box scenario-lose">
                         <div class="scenario-title">❌ If Option A Loses (Protected)</div>
                         <div class="calculation-steps">
-                            Multi-bet loss: <strong>-${multiBetStake.toFixed(2)}</strong><br>
-                            Hedge bet profit: ${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)} = <strong>+${scenarios.aLoses.hedgeProfit.toFixed(2)}</strong><br>
-                            Protection refund: <strong>+${actualReturn.toFixed(2)}</strong> ${actualReturn === maxBetReturn ? '(capped at $50)' : ''}
+                            Multi-bet loss: <strong>-$${multiBetStake.toFixed(2)}</strong><br>
+                            Hedge bet profit: $${hedgeReturn.toFixed(2)} - $${hedgeStake.toFixed(2)} = <strong>+$${scenarios.aLoses.hedgeProfit.toFixed(2)}</strong><br>
+                            Protection refund: <strong>+$${actualReturn.toFixed(2)}</strong> ${actualReturn === maxBetReturn ? '(capped at $50)' : ''}
                             <div class="total-line">
-                                <strong>Total Result: ${scenarios.aLoses.total.toFixed(2)}</strong>
+                                <strong>Total Result: $${scenarios.aLoses.total.toFixed(2)}</strong>
                             </div>
                         </div>
                     </div>
@@ -893,11 +667,11 @@
                     <div class="scenario-box scenario-win">
                         <div class="scenario-title">✅ If Option B Wins</div>
                         <div class="calculation-steps">
-                            Multi-bet profit: ${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)} = <strong>+${scenarios.bWins.multiBetProfit.toFixed(2)}</strong><br>
-                            Hedge bet loss: <strong>-${hedgeStake.toFixed(2)}</strong><br>
+                            Multi-bet profit: $${multiBetReturn.toFixed(2)} - $${multiBetStake.toFixed(2)} = <strong>+$${scenarios.bWins.multiBetProfit.toFixed(2)}</strong><br>
+                            Hedge bet loss: <strong>-$${hedgeStake.toFixed(2)}</strong><br>
                             Protection used: <strong>$0</strong>
                             <div class="total-line">
-                                <strong>Total Profit: ${scenarios.bWins.total.toFixed(2)}</strong>
+                                <strong>Total Profit: $${scenarios.bWins.total.toFixed(2)}</strong>
                             </div>
                         </div>
                     </div>
@@ -905,11 +679,11 @@
                     <div class="scenario-box scenario-lose">
                         <div class="scenario-title">❌ If Option B Loses (Protected)</div>
                         <div class="calculation-steps">
-                            Multi-bet loss: <strong>-${multiBetStake.toFixed(2)}</strong><br>
-                            Hedge bet profit: ${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)} = <strong>+${scenarios.bLoses.hedgeProfit.toFixed(2)}</strong><br>
-                            Protection refund: <strong>+${actualReturn.toFixed(2)}</strong> ${actualReturn === maxBetReturn ? '(capped at $50)' : ''}
+                            Multi-bet loss: <strong>-$${multiBetStake.toFixed(2)}</strong><br>
+                            Hedge bet profit: $${hedgeReturn.toFixed(2)} - $${hedgeStake.toFixed(2)} = <strong>+$${scenarios.bLoses.hedgeProfit.toFixed(2)}</strong><br>
+                            Protection refund: <strong>+$${actualReturn.toFixed(2)}</strong> ${actualReturn === maxBetReturn ? '(capped at $50)' : ''}
                             <div class="total-line">
-                                <strong>Total Result: ${scenarios.bLoses.total.toFixed(2)}</strong>
+                                <strong>Total Result: $${scenarios.bLoses.total.toFixed(2)}</strong>
                             </div>
                         </div>
                     </div>
@@ -919,10 +693,10 @@
                     <div class="scenario-box scenario-win">
                         <div class="scenario-title">✅ If Option A Wins</div>
                         <div class="calculation-steps">
-                            Multi-bet profit: ${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)} = <strong>+${scenarios.aWins.multiBetProfit.toFixed(2)}</strong><br>
-                            Hedge bet loss: <strong>-${hedgeStake.toFixed(2)}</strong>
+                            Multi-bet profit: $${multiBetReturn.toFixed(2)} - $${multiBetStake.toFixed(2)} = <strong>+$${scenarios.aWins.multiBetProfit.toFixed(2)}</strong><br>
+                            Hedge bet loss: <strong>-$${hedgeStake.toFixed(2)}</strong>
                             <div class="total-line">
-                                <strong>Total Profit: ${scenarios.aWins.total.toFixed(2)}</strong>
+                                <strong>Total Profit: $${scenarios.aWins.total.toFixed(2)}</strong>
                             </div>
                         </div>
                     </div>
@@ -930,10 +704,10 @@
                     <div class="scenario-box scenario-lose-bad">
                         <div class="scenario-title">❌ If Option B Wins (No Protection)</div>
                         <div class="calculation-steps">
-                            Multi-bet loss: <strong>-${multiBetStake.toFixed(2)}</strong><br>
-                            Hedge bet profit: ${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)} = <strong>+${scenarios.bWins.hedgeProfit.toFixed(2)}</strong>
+                            Multi-bet loss: <strong>-$${multiBetStake.toFixed(2)}</strong><br>
+                            Hedge bet profit: $${hedgeReturn.toFixed(2)} - $${hedgeStake.toFixed(2)} = <strong>+$${scenarios.bWins.hedgeProfit.toFixed(2)}</strong>
                             <div class="total-line">
-                                <strong>Total Result: ${scenarios.bWins.total.toFixed(2)}</strong>
+                                <strong>Total Result: $${scenarios.bWins.total.toFixed(2)}</strong>
                             </div>
                         </div>
                     </div>
@@ -954,13 +728,10 @@
             resultsDiv.classList.remove('hidden');
         }
         
-        // Allow Enter key to calculate (only for arbitrage mode)
+        // Allow Enter key to calculate
         document.addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                const arbitrageSection = document.getElementById('arbitrageSection');
-                if (!arbitrageSection.classList.contains('hidden')) {
-                    calculateArbitrage();
-                }
+                calculateMultiHedge();
             }
         });
     </script>
