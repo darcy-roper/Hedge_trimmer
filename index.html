@@ -287,6 +287,119 @@
             color: #667eea;
         }
         
+        .allocation-sliders {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid #e1e5e9;
+        }
+        
+        .allocation-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .allocation-header h4 {
+            margin: 0 0 8px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .allocation-subtitle {
+            color: #666;
+            font-size: 0.9em;
+            margin: 0;
+        }
+        
+        .slider-container {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .slider-section {
+            text-align: center;
+        }
+        
+        .slider-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .slider-amount {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .allocation-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e1e5e9;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+        
+        .allocation-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .allocation-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .slider-divider {
+            width: 2px;
+            height: 60px;
+            background: linear-gradient(to bottom, #e1e5e9, #667eea, #e1e5e9);
+            border-radius: 1px;
+        }
+        
+        .allocation-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .allocation-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e1e5e9;
+        }
+        
+        .allocation-percentage {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
         .scenario-box {
             margin-bottom: 25px;
             border-radius: 16px;
@@ -502,11 +615,49 @@
         <div id="results" class="results hidden">
             <div id="opportunityStatus"></div>
             <div id="strategy" class="strategy-grid"></div>
+            
+            <div id="allocationSliders" class="allocation-sliders hidden">
+                <div class="allocation-header">
+                    <h4>🎚️ Adjust Capital Allocation</h4>
+                    <p class="allocation-subtitle">Slide to see how different allocations affect your profit/loss</p>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-section">
+                        <div class="slider-label">Multi-Bet Amount</div>
+                        <div class="slider-amount" id="multiBetSliderAmount">$0.00</div>
+                        <input type="range" class="allocation-slider" id="multiBetSlider" min="0" max="100" value="60">
+                    </div>
+                    
+                    <div class="slider-divider"></div>
+                    
+                    <div class="slider-section">
+                        <div class="slider-label">Hedge Bet Amount</div>
+                        <div class="slider-amount" id="hedgeBetSliderAmount">$0.00</div>
+                        <input type="range" class="allocation-slider" id="hedgeBetSlider" min="0" max="100" value="40">
+                    </div>
+                </div>
+                
+                <div class="allocation-summary">
+                    <div class="allocation-item">
+                        <strong>Multi-Bet</strong>
+                        <div class="allocation-percentage" id="multiBetPercentage">60%</div>
+                    </div>
+                    <div class="allocation-item">
+                        <strong>Hedge Bet</strong>
+                        <div class="allocation-percentage" id="hedgeBetPercentage">40%</div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="summary" class="summary"></div>
         </div>
     </div>
 
     <script>
+        // Global variables to store current calculation state
+        let currentCalculation = null;
+        
         // Handle bet return option selection
         document.getElementById('betReturnA').addEventListener('change', function() {
             updateBetReturnVisual('A');
@@ -514,6 +665,15 @@
         
         document.getElementById('betReturnB').addEventListener('change', function() {
             updateBetReturnVisual('B');
+        });
+        
+        // Handle slider interactions
+        document.getElementById('multiBetSlider').addEventListener('input', function() {
+            updateAllocationFromSlider('multi');
+        });
+        
+        document.getElementById('hedgeBetSlider').addEventListener('input', function() {
+            updateAllocationFromSlider('hedge');
         });
         
         function updateBetReturnVisual(option) {
@@ -534,6 +694,51 @@
             } else {
                 optionB.classList.remove('selected');
             }
+        }
+        
+        function updateAllocationFromSlider(changedSlider) {
+            if (!currentCalculation) return;
+            
+            const multiBetSlider = document.getElementById('multiBetSlider');
+            const hedgeBetSlider = document.getElementById('hedgeBetSlider');
+            
+            let multiBetPercentage, hedgeBetPercentage;
+            
+            if (changedSlider === 'multi') {
+                multiBetPercentage = parseInt(multiBetSlider.value);
+                hedgeBetPercentage = 100 - multiBetPercentage;
+                hedgeBetSlider.value = hedgeBetPercentage;
+            } else {
+                hedgeBetPercentage = parseInt(hedgeBetSlider.value);
+                multiBetPercentage = 100 - hedgeBetPercentage;
+                multiBetSlider.value = multiBetPercentage;
+            }
+            
+            // Update the calculation with new percentages
+            updateCalculationWithAllocation(multiBetPercentage / 100, hedgeBetPercentage / 100);
+        }
+        
+        function updateCalculationWithAllocation(multiBetRatio, hedgeBetRatio) {
+            if (!currentCalculation) return;
+            
+            const totalCapital = currentCalculation.totalCapital;
+            const multiBetStake = totalCapital * multiBetRatio;
+            const hedgeStake = totalCapital * hedgeBetRatio;
+            
+            // Update slider display amounts
+            document.getElementById('multiBetSliderAmount').textContent = `$${multiBetStake.toFixed(2)}`;
+            document.getElementById('hedgeBetSliderAmount').textContent = `$${hedgeStake.toFixed(2)}`;
+            document.getElementById('multiBetPercentage').textContent = `${Math.round(multiBetRatio * 100)}%`;
+            document.getElementById('hedgeBetPercentage').textContent = `${Math.round(hedgeBetRatio * 100)}%`;
+            
+            // Recalculate with new stakes
+            const updatedCalculation = {
+                ...currentCalculation,
+                multiBetStake: multiBetStake,
+                hedgeStake: hedgeStake
+            };
+            
+            displayResults(updatedCalculation);
         }
         
         function calculateMultiHedge() {
@@ -560,19 +765,22 @@
             let hedgeOdds = 0;
             let protectedOption = '';
             let actualReturn = 0;
+            let initialMultiBetRatio = 0;
             
             if (betReturnA && !betReturnB) {
                 // Option A protected - allocate more to multi-bet since it's safer
-                multiBetStake = totalCapital * 0.75; // 75% to protected multi-bet
-                hedgeStake = totalCapital * 0.25; // 25% to hedge
+                initialMultiBetRatio = 0.75;
+                multiBetStake = totalCapital * initialMultiBetRatio;
+                hedgeStake = totalCapital * (1 - initialMultiBetRatio);
                 multiBetOdds = oddsA;
                 hedgeOdds = baseSingleOddsB;
                 protectedOption = 'A';
                 actualReturn = Math.min(multiBetStake, maxBetReturn);
             } else if (betReturnB && !betReturnA) {
                 // Option B protected
-                multiBetStake = totalCapital * 0.75;
-                hedgeStake = totalCapital * 0.25;
+                initialMultiBetRatio = 0.75;
+                multiBetStake = totalCapital * initialMultiBetRatio;
+                hedgeStake = totalCapital * (1 - initialMultiBetRatio);
                 multiBetOdds = oddsB;
                 hedgeOdds = baseSingleOddsA;
                 protectedOption = 'B';
@@ -582,12 +790,46 @@
                 return;
             } else {
                 // No protection - more conservative split
-                multiBetStake = totalCapital * 0.60; // 60% to multi-bet
-                hedgeStake = totalCapital * 0.40; // 40% to hedge
+                initialMultiBetRatio = 0.60;
+                multiBetStake = totalCapital * initialMultiBetRatio;
+                hedgeStake = totalCapital * (1 - initialMultiBetRatio);
                 multiBetOdds = oddsA; // Default to option A
                 hedgeOdds = baseSingleOddsB;
                 protectedOption = 'none';
             }
+            
+            // Store current calculation state
+            currentCalculation = {
+                oddsA, oddsB, totalCapital, betReturnA, betReturnB,
+                multiBetOdds, hedgeOdds, protectedOption, maxBetReturn,
+                baseSingleOddsA, baseSingleOddsB, actualReturn,
+                multiBetStake, hedgeStake
+            };
+            
+            // Set up sliders with initial values
+            const multiBetPercentage = Math.round(initialMultiBetRatio * 100);
+            const hedgeBetPercentage = 100 - multiBetPercentage;
+            
+            document.getElementById('multiBetSlider').value = multiBetPercentage;
+            document.getElementById('hedgeBetSlider').value = hedgeBetPercentage;
+            document.getElementById('multiBetSliderAmount').textContent = `$${multiBetStake.toFixed(2)}`;
+            document.getElementById('hedgeBetSliderAmount').textContent = `$${hedgeStake.toFixed(2)}`;
+            document.getElementById('multiBetPercentage').textContent = `${multiBetPercentage}%`;
+            document.getElementById('hedgeBetPercentage').textContent = `${hedgeBetPercentage}%`;
+            
+            // Show results and sliders
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('allocationSliders').classList.remove('hidden');
+            
+            displayResults(currentCalculation);
+        }
+        
+        function displayResults(calc) {
+            const { multiBetStake, hedgeStake, multiBetOdds, hedgeOdds, protectedOption, 
+                    maxBetReturn, totalCapital, baseSingleOddsA, baseSingleOddsB } = calc;
+            
+            // Recalculate actualReturn based on current multiBetStake
+            const currentActualReturn = (protectedOption !== 'none') ? Math.min(multiBetStake, maxBetReturn) : 0;
             
             // Calculate returns
             const multiBetReturn = multiBetStake * multiBetOdds;
@@ -607,8 +849,8 @@
                     aLoses: {
                         multiBetLoss: -multiBetStake,
                         hedgeProfit: hedgeReturn - hedgeStake,
-                        protectionGained: actualReturn,
-                        total: -multiBetStake + (hedgeReturn - hedgeStake) + actualReturn
+                        protectionGained: currentActualReturn,
+                        total: -multiBetStake + (hedgeReturn - hedgeStake) + currentActualReturn
                     }
                 };
             } else if (protectedOption === 'B') {
@@ -622,8 +864,8 @@
                     bLoses: {
                         multiBetLoss: -multiBetStake,
                         hedgeProfit: hedgeReturn - hedgeStake,
-                        protectionGained: actualReturn,
-                        total: -multiBetStake + (hedgeReturn - hedgeStake) + actualReturn
+                        protectionGained: currentActualReturn,
+                        total: -multiBetStake + (hedgeReturn - hedgeStake) + currentActualReturn
                     }
                 };
             } else {
@@ -644,12 +886,11 @@
             }
             
             // Display results
-            const resultsDiv = document.getElementById('results');
             const opportunityDiv = document.getElementById('opportunityStatus');
             const strategyDiv = document.getElementById('strategy');
             const summaryDiv = document.getElementById('summary');
             
-            const protectionStatus = (betReturnA || betReturnB) ? 
+            const protectionStatus = (calc.betReturnA || calc.betReturnB) ? 
                 `🛡️ Protected Hedging Strategy` : 
                 `📊 Standard Hedging Strategy`;
             
@@ -659,69 +900,69 @@
                 </div>
             `;
             
-            // Strategy cards
+            // Strategy cards (update with current stakes)
             let strategyHtml = '';
             if (protectedOption === 'A') {
                 strategyHtml = `
                     <div class="strategy-card">
                         <h3>Multi-Bet A (Protected) 🛡️</h3>
-                        <div class="bet-amount">$${multiBetStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${multiBetOdds} | Return: $${multiBetReturn.toFixed(2)}</div>
-                        <div class="potential-return">Protection: $${actualReturn.toFixed(2)} if fails</div>
+                        <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
+                        <div class="potential-return">Protection: ${currentActualReturn.toFixed(2)} if fails</div>
                     </div>
                     <div class="strategy-card">
                         <h3>Hedge Bet B</h3>
-                        <div class="bet-amount">$${hedgeStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${hedgeOdds} | Return: $${hedgeReturn.toFixed(2)}</div>
+                        <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
                     </div>
                 `;
             } else if (protectedOption === 'B') {
                 strategyHtml = `
                     <div class="strategy-card">
                         <h3>Multi-Bet B (Protected) 🛡️</h3>
-                        <div class="bet-amount">$${multiBetStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${multiBetOdds} | Return: $${multiBetReturn.toFixed(2)}</div>
-                        <div class="potential-return">Protection: $${actualReturn.toFixed(2)} if fails</div>
+                        <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
+                        <div class="potential-return">Protection: ${currentActualReturn.toFixed(2)} if fails</div>
                     </div>
                     <div class="strategy-card">
                         <h3>Hedge Bet A</h3>
-                        <div class="bet-amount">$${hedgeStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${hedgeOdds} | Return: $${hedgeReturn.toFixed(2)}</div>
+                        <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
                     </div>
                 `;
             } else {
                 strategyHtml = `
                     <div class="strategy-card">
                         <h3>Multi-Bet A</h3>
-                        <div class="bet-amount">$${multiBetStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${multiBetOdds} | Return: $${multiBetReturn.toFixed(2)}</div>
+                        <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
                     </div>
                     <div class="strategy-card">
                         <h3>Hedge Bet B</h3>
-                        <div class="bet-amount">$${hedgeStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${hedgeOdds} | Return: $${hedgeReturn.toFixed(2)}</div>
+                        <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
                     </div>
                 `;
             }
             
             strategyDiv.innerHTML = strategyHtml;
             
-            // Detailed summary with capital breakdown and scenarios
+            // Generate detailed summary
             let summaryHtml = `
                 <div class="capital-breakdown">
                     <h4 style="margin-bottom: 15px; color: #333;">💰 Capital Allocation</h4>
                     <div class="capital-grid">
                         <div class="capital-item">
                             <strong>Total Capital</strong>
-                            <div class="capital-amount">$${totalCapital.toFixed(2)}</div>
+                            <div class="capital-amount">${totalCapital.toFixed(2)}</div>
                         </div>
                         <div class="capital-item">
                             <strong>Multi-Bet</strong>
-                            <div class="capital-amount">$${multiBetStake.toFixed(2)}</div>
+                            <div class="capital-amount">${multiBetStake.toFixed(2)}</div>
                         </div>
                         <div class="capital-item">
                             <strong>Hedge Bet</strong>
-                            <div class="capital-amount">$${hedgeStake.toFixed(2)}</div>
+                            <div class="capital-amount">${hedgeStake.toFixed(2)}</div>
                         </div>
                     </div>
                 </div>
@@ -739,13 +980,13 @@
                             <div class="calculation-grid">
                                 <div class="calculation-item positive">
                                     <span class="calc-label">Multi-bet profit</span>
-                                    <span class="calc-formula">$${multiBetReturn.toFixed(2)} - $${multiBetStake.toFixed(2)}</span>
-                                    <span class="calc-result positive">+$${scenarios.aWins.multiBetProfit.toFixed(2)}</span>
+                                    <span class="calc-formula">${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${scenarios.aWins.multiBetProfit.toFixed(2)}</span>
                                 </div>
                                 <div class="calculation-item negative">
                                     <span class="calc-label">Hedge bet loss</span>
-                                    <span class="calc-formula">-$${hedgeStake.toFixed(2)}</span>
-                                    <span class="calc-result negative">-$${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-formula">-${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-${hedgeStake.toFixed(2)}</span>
                                 </div>
                                 <div class="calculation-item neutral">
                                     <span class="calc-label">Protection used</span>
@@ -755,7 +996,7 @@
                             </div>
                             <div class="total-result">
                                 <div class="total-label">Total Profit</div>
-                                <div class="total-amount">$${scenarios.aWins.total.toFixed(2)}</div>
+                                <div class="total-amount">${scenarios.aWins.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
@@ -768,23 +1009,23 @@
                             <div class="calculation-grid">
                                 <div class="calculation-item negative">
                                     <span class="calc-label">Multi-bet loss</span>
-                                    <span class="calc-formula">-$${multiBetStake.toFixed(2)}</span>
-                                    <span class="calc-result negative">-$${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-formula">-${multiBetStake.toFixed(2)}</span>
+                                    <span class="calc-result negative">-${multiBetStake.toFixed(2)}</span>
                                 </div>
                                 <div class="calculation-item positive">
                                     <span class="calc-label">Hedge bet profit</span>
-                                    <span class="calc-formula">$${hedgeReturn.toFixed(2)} - $${hedgeStake.toFixed(2)}</span>
-                                    <span class="calc-result positive">+$${scenarios.aLoses.hedgeProfit.toFixed(2)}</span>
+                                    <span class="calc-formula">${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${scenarios.aLoses.hedgeProfit.toFixed(2)}</span>
                                 </div>
                                 <div class="calculation-item positive">
-                                    <span class="calc-label">Protection refund ${actualReturn === maxBetReturn ? '(capped)' : ''}</span>
-                                    <span class="calc-formula">+$${actualReturn.toFixed(2)}</span>
-                                    <span class="calc-result positive">+$${actualReturn.toFixed(2)}</span>
+                                    <span class="calc-label">Protection refund ${currentActualReturn === maxBetReturn ? '(capped)' : ''}</span>
+                                    <span class="calc-formula">+${currentActualReturn.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${currentActualReturn.toFixed(2)}</span>
                                 </div>
                             </div>
                             <div class="total-result">
                                 <div class="total-label">Total Result</div>
-                                <div class="total-amount">$${scenarios.aLoses.total.toFixed(2)}</div>
+                                <div class="total-amount">${scenarios.aLoses.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
@@ -837,9 +1078,9 @@
                                     <span class="calc-result positive">+${scenarios.bLoses.hedgeProfit.toFixed(2)}</span>
                                 </div>
                                 <div class="calculation-item positive">
-                                    <span class="calc-label">Protection refund ${actualReturn === maxBetReturn ? '(capped)' : ''}</span>
-                                    <span class="calc-formula">+${actualReturn.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${actualReturn.toFixed(2)}</span>
+                                    <span class="calc-label">Protection refund ${currentActualReturn === maxBetReturn ? '(capped)' : ''}</span>
+                                    <span class="calc-formula">+${currentActualReturn.toFixed(2)}</span>
+                                    <span class="calc-result positive">+${currentActualReturn.toFixed(2)}</span>
                                 </div>
                             </div>
                             <div class="total-result">
@@ -906,13 +1147,12 @@
                     <p style="color: #666; font-size: 0.9em; margin: 0;">
                         💡 Single leg odds are estimated (A: ${baseSingleOddsA}, B: ${baseSingleOddsB}). Always verify actual odds before placing bets.
                     </p>
-                    ${actualReturn === maxBetReturn && (multiBetStake > maxBetReturn) ? 
+                    ${currentActualReturn === maxBetReturn && (multiBetStake > maxBetReturn) ? 
                         '<p style="color: #f59e0b; font-size: 0.85em; margin: 5px 0 0 0;">⚠️ Bet return is capped at $50 despite higher stake</p>' : ''}
                 </div>
             `;
             
             summaryDiv.innerHTML = summaryHtml;
-            resultsDiv.classList.remove('hidden');
         }
         
         // Allow Enter key to calculate
