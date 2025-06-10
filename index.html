@@ -77,6 +77,13 @@
             margin-bottom: 20px;
         }
         
+        @media (max-width: 768px) {
+            .outcome-section {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+        
         .outcome-card {
             background: #f8f9fa;
             border-radius: 12px;
@@ -262,9 +269,16 @@
         
         .capital-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 15px;
             margin-top: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .capital-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
         }
         
         .capital-item {
@@ -319,6 +333,21 @@
             gap: 20px;
             align-items: center;
             margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .slider-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .slider-divider {
+                width: 60px;
+                height: 2px;
+                background: linear-gradient(to right, #e1e5e9, #667eea, #e1e5e9);
+                justify-self: center;
+            }
         }
         
         .slider-section {
@@ -384,6 +413,13 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .allocation-summary {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
         }
         
         .allocation-item {
@@ -457,6 +493,34 @@
             background: #f8f9fa;
             border-radius: 10px;
             border-left: 3px solid #e1e5e9;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .calculation-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 15px 12px;
+                gap: 8px;
+            }
+            
+            .calc-formula {
+                margin: 0;
+                order: 2;
+            }
+            
+            .calc-result {
+                min-width: auto;
+                text-align: left;
+                order: 3;
+                font-size: 1.2em;
+            }
+            
+            .calc-label {
+                order: 1;
+                font-weight: 600;
+            }
         }
         
         .calculation-item.positive {
@@ -556,6 +620,74 @@
         
         .scenario-lose-bad .total-amount {
             color: #ef4444;
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+            
+            .multi-section {
+                padding: 20px;
+            }
+            
+            .multi-section h3 {
+                font-size: 1.2em;
+            }
+            
+            .strategy-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .scenario-header {
+                padding: 15px 20px 10px 20px;
+            }
+            
+            .scenario-title {
+                font-size: 1.1em;
+            }
+            
+            .scenario-body {
+                padding: 20px;
+            }
+            
+            .total-amount {
+                font-size: 1.5em;
+            }
+            
+            .allocation-header h4 {
+                font-size: 1.1em;
+            }
+            
+            .slider-amount {
+                font-size: 1.2em;
+            }
+            
+            .legs-input {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .legs-input label {
+                text-align: center;
+            }
+            
+            .stake-input input {
+                width: 100%;
+                max-width: 200px;
+            }
         }
     </style>
 </head>
