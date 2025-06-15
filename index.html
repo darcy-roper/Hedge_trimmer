@@ -134,6 +134,23 @@
             margin-right: 8px;
         }
 
+        .protection-status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .protection-status.dual {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+
         .stake-input {
             margin-bottom: 25px;
         }
@@ -679,6 +696,8 @@
                     </div>
                 </div>
             </div>
+
+            <div id="protectionStatus" class="protection-status hidden"></div>
             
             <div class="stake-input">
                 <label for="totalCapital">Total Capital Available ($)</label>
@@ -768,11 +787,13 @@
         
         // Handle bet return option selection
         document.getElementById('betReturnA').addEventListener('change', function() {
-            updateBetReturnVisual('A');
+            updateBetReturnVisual();
+            updateProtectionStatus();
         });
         
         document.getElementById('betReturnB').addEventListener('change', function() {
-            updateBetReturnVisual('B');
+            updateBetReturnVisual();
+            updateProtectionStatus();
         });
         
         // Handle slider interactions
@@ -784,7 +805,7 @@
             updateAllocationFromSlider('hedge');
         });
         
-        function updateBetReturnVisual(option) {
+        function updateBetReturnVisual() {
             const optionA = document.getElementById('returnOptionA');
             const optionB = document.getElementById('returnOptionB');
             const checkboxA = document.getElementById('betReturnA');
@@ -801,6 +822,25 @@
                 optionB.classList.add('selected');
             } else {
                 optionB.classList.remove('selected');
+            }
+        }
+        
+        function updateProtectionStatus() {
+            const betReturnA = document.getElementById('betReturnA').checked;
+            const betReturnB = document.getElementById('betReturnB').checked;
+            const statusDiv = document.getElementById('protectionStatus');
+            
+            if (betReturnA && betReturnB) {
+                statusDiv.innerHTML = '🛡️🛡️ DUAL PROTECTION ACTIVE - Both options protected with bet returns';
+                statusDiv.className = 'protection-status dual';
+                statusDiv.classList.remove('hidden');
+            } else if (betReturnA || betReturnB) {
+                const protectedOption = betReturnA ? 'Option A' : 'Option B';
+                statusDiv.innerHTML = `🛡️ SINGLE PROTECTION ACTIVE - ${protectedOption} protected with bet return`;
+                statusDiv.className = 'protection-status';
+                statusDiv.classList.remove('hidden');
+            } else {
+                statusDiv.classList.add('hidden');
             }
         }
         
@@ -852,9 +892,6 @@
         function calculateOptimalAllocation(calc) {
             const { oddsA, oddsB, totalCapital, betReturnA, betReturnB, maxBetReturn } = calc;
             
-            // For optimal allocation, we want to maximize the worst-case scenario
-            // We'll test different allocations and find the one that gives the best minimum outcome
-            
             let bestMinProfit = -Infinity;
             let bestMultiBetRatio = 0.5;
             
@@ -866,61 +903,43 @@
                 const multiBetStake = totalCapital * multiBetRatio;
                 const hedgeStake = totalCapital * hedgeBetRatio;
                 
-                let multiBetOdds, hedgeOdds, protectedOption, actualReturn;
+                let multiBetOdds, hedgeOdds, scenarios;
                 
-                if (betReturnA && !betReturnB) {
-                    multiBetOdds = oddsA;
-                    hedgeOdds = oddsB;
-                    protectedOption = 'A';
-                    actualReturn = Math.min(multiBetStake, maxBetReturn);
-                } else if (betReturnB && !betReturnA) {
-                    multiBetOdds = oddsB;
-                    hedgeOdds = oddsA;
-                    protectedOption = 'B';
-                    actualReturn = Math.min(multiBetStake, maxBetReturn);
-                } else {
-                    if (oddsB > oddsA) {
-                        multiBetOdds = oddsB;
-                        hedgeOdds = oddsA;
-                        protectedOption = 'none-B';
-                    } else {
+                // Determine betting strategy based on protection options
+                if (betReturnA && betReturnB) {
+                    // Dual protection - use higher odds for multi-bet
+                    if (oddsA > oddsB) {
                         multiBetOdds = oddsA;
                         hedgeOdds = oddsB;
-                        protectedOption = 'none-A';
+                        scenarios = calculateDualProtectionScenarios(multiBetStake, hedgeStake, oddsA, oddsB, maxBetReturn);
+                    } else {
+                        multiBetOdds = oddsB;
+                        hedgeOdds = oddsA;
+                        scenarios = calculateDualProtectionScenarios(multiBetStake, hedgeStake, oddsB, oddsA, maxBetReturn);
                     }
-                    actualReturn = 0;
-                }
-                
-                // Calculate outcomes for both scenarios
-                const multiBetReturn = multiBetStake * multiBetOdds;
-                const hedgeReturn = hedgeStake * hedgeOdds;
-                
-                let scenario1Profit, scenario2Profit;
-                
-                if (protectedOption === 'A') {
-                    // A wins: multi-bet profit - hedge loss
-                    scenario1Profit = (multiBetReturn - multiBetStake) - hedgeStake;
-                    // A loses: multi-bet loss + hedge profit + protection
-                    scenario2Profit = -multiBetStake + (hedgeReturn - hedgeStake) + actualReturn;
-                } else if (protectedOption === 'B') {
-                    // B wins: multi-bet profit - hedge loss
-                    scenario1Profit = (multiBetReturn - multiBetStake) - hedgeStake;
-                    // B loses: multi-bet loss + hedge profit + protection
-                    scenario2Profit = -multiBetStake + (hedgeReturn - hedgeStake) + actualReturn;
-                } else if (protectedOption === 'none-B') {
-                    // B wins: multi-bet profit - hedge loss
-                    scenario1Profit = (multiBetReturn - multiBetStake) - hedgeStake;
-                    // A wins: multi-bet loss + hedge profit
-                    scenario2Profit = -multiBetStake + (hedgeReturn - hedgeStake);
+                } else if (betReturnA) {
+                    multiBetOdds = oddsA;
+                    hedgeOdds = oddsB;
+                    scenarios = calculateSingleProtectionScenarios(multiBetStake, hedgeStake, oddsA, oddsB, maxBetReturn, 'A');
+                } else if (betReturnB) {
+                    multiBetOdds = oddsB;
+                    hedgeOdds = oddsA;
+                    scenarios = calculateSingleProtectionScenarios(multiBetStake, hedgeStake, oddsB, oddsA, maxBetReturn, 'B');
                 } else {
-                    // A wins: multi-bet profit - hedge loss
-                    scenario1Profit = (multiBetReturn - multiBetStake) - hedgeStake;
-                    // B wins: multi-bet loss + hedge profit
-                    scenario2Profit = -multiBetStake + (hedgeReturn - hedgeStake);
+                    // No protection - use higher odds for multi-bet
+                    if (oddsA > oddsB) {
+                        multiBetOdds = oddsA;
+                        hedgeOdds = oddsB;
+                        scenarios = calculateStandardScenarios(multiBetStake, hedgeStake, oddsA, oddsB);
+                    } else {
+                        multiBetOdds = oddsB;
+                        hedgeOdds = oddsA;
+                        scenarios = calculateStandardScenarios(multiBetStake, hedgeStake, oddsB, oddsA);
+                    }
                 }
                 
-                // The minimum of the two scenarios is what we want to maximize
-                const minProfit = Math.min(scenario1Profit, scenario2Profit);
+                // The minimum of the scenarios is what we want to maximize
+                const minProfit = Math.min(...Object.values(scenarios).map(s => s.total));
                 
                 if (minProfit > bestMinProfit) {
                     bestMinProfit = minProfit;
@@ -932,6 +951,51 @@
                 multiBetRatio: bestMultiBetRatio,
                 hedgeBetRatio: 1 - bestMultiBetRatio,
                 minProfit: bestMinProfit
+            };
+        }
+        
+        function calculateDualProtectionScenarios(multiBetStake, hedgeStake, multiBetOdds, hedgeOdds, maxBetReturn) {
+            const multiBetReturn = multiBetStake * multiBetOdds;
+            const hedgeReturn = hedgeStake * hedgeOdds;
+            const multiBetProtection = Math.min(multiBetStake, maxBetReturn);
+            const hedgeProtection = Math.min(hedgeStake, maxBetReturn);
+            
+            return {
+                multiBetWins: {
+                    total: (multiBetReturn - multiBetStake) - hedgeStake + hedgeProtection
+                },
+                hedgeWins: {
+                    total: -multiBetStake + multiBetProtection + (hedgeReturn - hedgeStake)
+                }
+            };
+        }
+        
+        function calculateSingleProtectionScenarios(multiBetStake, hedgeStake, multiBetOdds, hedgeOdds, maxBetReturn, protectedOption) {
+            const multiBetReturn = multiBetStake * multiBetOdds;
+            const hedgeReturn = hedgeStake * hedgeOdds;
+            const protection = Math.min(multiBetStake, maxBetReturn);
+            
+            return {
+                multiBetWins: {
+                    total: (multiBetReturn - multiBetStake) - hedgeStake
+                },
+                multiBetLoses: {
+                    total: -multiBetStake + (hedgeReturn - hedgeStake) + protection
+                }
+            };
+        }
+        
+        function calculateStandardScenarios(multiBetStake, hedgeStake, multiBetOdds, hedgeOdds) {
+            const multiBetReturn = multiBetStake * multiBetOdds;
+            const hedgeReturn = hedgeStake * hedgeOdds;
+            
+            return {
+                multiBetWins: {
+                    total: (multiBetReturn - multiBetStake) - hedgeStake
+                },
+                hedgeWins: {
+                    total: -multiBetStake + (hedgeReturn - hedgeStake)
+                }
             };
         }
         
@@ -970,41 +1034,42 @@
             // Calculate initial stake distribution (use optimal by default)
             let multiBetStake = totalCapital * optimalAllocation.multiBetRatio;
             let hedgeStake = totalCapital * optimalAllocation.hedgeBetRatio;
-            let multiBetOdds = 0;
-            let hedgeOdds = 0;
-            let protectedOption = '';
-            let actualReturn = 0;
+            let multiBetOdds, hedgeOdds, protectionType;
             
-            if (betReturnA && !betReturnB) {
-                multiBetOdds = oddsA;
-                hedgeOdds = oddsB;
-                protectedOption = 'A';
-                actualReturn = Math.min(multiBetStake, maxBetReturn);
-            } else if (betReturnB && !betReturnA) {
-                multiBetOdds = oddsB;
-                hedgeOdds = oddsA;
-                protectedOption = 'B';
-                actualReturn = Math.min(multiBetStake, maxBetReturn);
-            } else if (betReturnA && betReturnB) {
-                alert('Please select only one bet return option or neither');
-                return;
-            } else {
-                if (oddsB > oddsA) {
-                    multiBetOdds = oddsB;
-                    hedgeOdds = oddsA;
-                    protectedOption = 'none-B';
-                } else {
+            // Determine strategy based on protection selections
+            if (betReturnA && betReturnB) {
+                protectionType = 'dual';
+                if (oddsA > oddsB) {
                     multiBetOdds = oddsA;
                     hedgeOdds = oddsB;
-                    protectedOption = 'none-A';
+                } else {
+                    multiBetOdds = oddsB;
+                    hedgeOdds = oddsA;
+                }
+            } else if (betReturnA) {
+                protectionType = 'singleA';
+                multiBetOdds = oddsA;
+                hedgeOdds = oddsB;
+            } else if (betReturnB) {
+                protectionType = 'singleB';
+                multiBetOdds = oddsB;
+                hedgeOdds = oddsA;
+            } else {
+                protectionType = 'none';
+                if (oddsA > oddsB) {
+                    multiBetOdds = oddsA;
+                    hedgeOdds = oddsB;
+                } else {
+                    multiBetOdds = oddsB;
+                    hedgeOdds = oddsA;
                 }
             }
             
             // Store current calculation state
             currentCalculation = {
                 oddsA, oddsB, totalCapital, betReturnA, betReturnB,
-                multiBetOdds, hedgeOdds, protectedOption, maxBetReturn,
-                actualReturn, multiBetStake, hedgeStake
+                multiBetOdds, hedgeOdds, protectionType, maxBetReturn,
+                multiBetStake, hedgeStake
             };
             
             // Set up sliders with optimal values
@@ -1034,20 +1099,53 @@
         }
         
         function displayResults(calc) {
-            const { multiBetStake, hedgeStake, multiBetOdds, hedgeOdds, protectedOption, 
-                    maxBetReturn, totalCapital, oddsA, oddsB } = calc;
-            
-            // Recalculate actualReturn based on current multiBetStake
-            const currentActualReturn = (protectedOption !== 'none-A' && protectedOption !== 'none-B') ? Math.min(multiBetStake, maxBetReturn) : 0;
+            const { multiBetStake, hedgeStake, multiBetOdds, hedgeOdds, protectionType, 
+                    maxBetReturn, totalCapital, oddsA, oddsB, betReturnA, betReturnB } = calc;
             
             // Calculate returns
             const multiBetReturn = multiBetStake * multiBetOdds;
             const hedgeReturn = hedgeStake * hedgeOdds;
             
-            // Calculate scenarios
+            // Calculate scenarios based on protection type
             let scenarios = {};
             
-            if (protectedOption === 'A') {
+            if (protectionType === 'dual') {
+                const multiBetProtection = Math.min(multiBetStake, maxBetReturn);
+                const hedgeProtection = Math.min(hedgeStake, maxBetReturn);
+                
+                if (multiBetOdds === oddsA) {
+                    scenarios = {
+                        aWins: {
+                            multiBetProfit: multiBetReturn - multiBetStake,
+                            hedgeLoss: -hedgeStake,
+                            protectionGained: hedgeProtection,
+                            total: (multiBetReturn - multiBetStake) - hedgeStake + hedgeProtection
+                        },
+                        bWins: {
+                            multiBetLoss: -multiBetStake,
+                            hedgeProfit: hedgeReturn - hedgeStake,
+                            protectionGained: multiBetProtection,
+                            total: -multiBetStake + (hedgeReturn - hedgeStake) + multiBetProtection
+                        }
+                    };
+                } else {
+                    scenarios = {
+                        bWins: {
+                            multiBetProfit: multiBetReturn - multiBetStake,
+                            hedgeLoss: -hedgeStake,
+                            protectionGained: hedgeProtection,
+                            total: (multiBetReturn - multiBetStake) - hedgeStake + hedgeProtection
+                        },
+                        aWins: {
+                            multiBetLoss: -multiBetStake,
+                            hedgeProfit: hedgeReturn - hedgeStake,
+                            protectionGained: multiBetProtection,
+                            total: -multiBetStake + (hedgeReturn - hedgeStake) + multiBetProtection
+                        }
+                    };
+                }
+            } else if (protectionType === 'singleA') {
+                const protection = Math.min(multiBetStake, maxBetReturn);
                 scenarios = {
                     aWins: {
                         multiBetProfit: multiBetReturn - multiBetStake,
@@ -1058,11 +1156,12 @@
                     aLoses: {
                         multiBetLoss: -multiBetStake,
                         hedgeProfit: hedgeReturn - hedgeStake,
-                        protectionGained: currentActualReturn,
-                        total: -multiBetStake + (hedgeReturn - hedgeStake) + currentActualReturn
+                        protectionGained: protection,
+                        total: -multiBetStake + (hedgeReturn - hedgeStake) + protection
                     }
                 };
-            } else if (protectedOption === 'B') {
+            } else if (protectionType === 'singleB') {
+                const protection = Math.min(multiBetStake, maxBetReturn);
                 scenarios = {
                     bWins: {
                         multiBetProfit: multiBetReturn - multiBetStake,
@@ -1073,54 +1172,58 @@
                     bLoses: {
                         multiBetLoss: -multiBetStake,
                         hedgeProfit: hedgeReturn - hedgeStake,
-                        protectionGained: currentActualReturn,
-                        total: -multiBetStake + (hedgeReturn - hedgeStake) + currentActualReturn
-                    }
-                };
-            } else if (protectedOption === 'none-B') {
-                scenarios = {
-                    bWins: {
-                        multiBetProfit: multiBetReturn - multiBetStake,
-                        hedgeLoss: -hedgeStake,
-                        protectionUsed: 0,
-                        total: (multiBetReturn - multiBetStake) - hedgeStake
-                    },
-                    aWins: {
-                        multiBetLoss: -multiBetStake,
-                        hedgeProfit: hedgeReturn - hedgeStake,
-                        protectionUsed: 0,
-                        total: -multiBetStake + (hedgeReturn - hedgeStake)
+                        protectionGained: protection,
+                        total: -multiBetStake + (hedgeReturn - hedgeStake) + protection
                     }
                 };
             } else {
-                scenarios = {
-                    aWins: {
-                        multiBetProfit: multiBetReturn - multiBetStake,
-                        hedgeLoss: -hedgeStake,
-                        protectionUsed: 0,
-                        total: (multiBetReturn - multiBetStake) - hedgeStake
-                    },
-                    bWins: {
-                        multiBetLoss: -multiBetStake,
-                        hedgeProfit: hedgeReturn - hedgeStake,
-                        protectionUsed: 0,
-                        total: -multiBetStake + (hedgeReturn - hedgeStake)
-                    }
-                };
+                // No protection
+                if (multiBetOdds === oddsA) {
+                    scenarios = {
+                        aWins: {
+                            multiBetProfit: multiBetReturn - multiBetStake,
+                            hedgeLoss: -hedgeStake,
+                            total: (multiBetReturn - multiBetStake) - hedgeStake
+                        },
+                        bWins: {
+                            multiBetLoss: -multiBetStake,
+                            hedgeProfit: hedgeReturn - hedgeStake,
+                            total: -multiBetStake + (hedgeReturn - hedgeStake)
+                        }
+                    };
+                } else {
+                    scenarios = {
+                        bWins: {
+                            multiBetProfit: multiBetReturn - multiBetStake,
+                            hedgeLoss: -hedgeStake,
+                            total: (multiBetReturn - multiBetStake) - hedgeStake
+                        },
+                        aWins: {
+                            multiBetLoss: -multiBetStake,
+                            hedgeProfit: hedgeReturn - hedgeStake,
+                            total: -multiBetStake + (hedgeReturn - hedgeStake)
+                        }
+                    };
+                }
             }
             
             // Check if current allocation is optimal
             const currentMultiBetRatio = multiBetStake / totalCapital;
-            const isOptimal = optimalAllocation && Math.abs(currentMultiBetRatio - optimalAllocation.multiBetRatio) < 0.02; // Within 2%
+            const isOptimal = optimalAllocation && Math.abs(currentMultiBetRatio - optimalAllocation.multiBetRatio) < 0.02;
             
             // Display results
             const opportunityDiv = document.getElementById('opportunityStatus');
             const strategyDiv = document.getElementById('strategy');
             const summaryDiv = document.getElementById('summary');
             
-            const protectionStatus = (calc.betReturnA || calc.betReturnB) ? 
-                `🛡️ Protected Hedging Strategy` : 
-                `📊 Standard Hedging Strategy`;
+            let protectionStatus;
+            if (protectionType === 'dual') {
+                protectionStatus = '🛡️🛡️ Dual Protection Hedging Strategy';
+            } else if (protectionType === 'singleA' || protectionType === 'singleB') {
+                protectionStatus = '🛡️ Protected Hedging Strategy';
+            } else {
+                protectionStatus = '📊 Standard Hedging Strategy';
+            }
             
             opportunityDiv.innerHTML = `
                 <div class="arbitrage-opportunity">
@@ -1128,16 +1231,46 @@
                 </div>
             `;
             
-            // Strategy cards (update with current stakes)
+            // Strategy cards
             let strategyHtml = '';
-            if (protectedOption === 'A') {
+            let multiBetLabel, hedgeBetLabel;
+            
+            if (protectionType === 'dual') {
+                if (multiBetOdds === oddsA) {
+                    multiBetLabel = 'Multi-Bet A (Protected) 🛡️';
+                    hedgeBetLabel = 'Hedge Bet B (Protected) 🛡️';
+                } else {
+                    multiBetLabel = 'Multi-Bet B (Protected) 🛡️';
+                    hedgeBetLabel = 'Hedge Bet A (Protected) 🛡️';
+                }
+                const multiBetProtection = Math.min(multiBetStake, maxBetReturn);
+                const hedgeProtection = Math.min(hedgeStake, maxBetReturn);
+                
+                strategyHtml = `
+                    <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
+                        ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
+                        <h3>${multiBetLabel}</h3>
+                        <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
+                        <div class="potential-return">Protection: ${multiBetProtection.toFixed(2)} if fails</div>
+                    </div>
+                    <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
+                        ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
+                        <h3>${hedgeBetLabel}</h3>
+                        <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
+                        <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
+                        <div class="potential-return">Protection: ${hedgeProtection.toFixed(2)} if fails</div>
+                    </div>
+                `;
+            } else if (protectionType === 'singleA') {
+                const protection = Math.min(multiBetStake, maxBetReturn);
                 strategyHtml = `
                     <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
                         ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
                         <h3>Multi-Bet A (Protected) 🛡️</h3>
                         <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
                         <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
-                        <div class="potential-return">Protection: ${currentActualReturn.toFixed(2)} if fails</div>
+                        <div class="potential-return">Protection: ${protection.toFixed(2)} if fails</div>
                     </div>
                     <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
                         ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
@@ -1146,29 +1279,15 @@
                         <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
                     </div>
                 `;
-            } else if (protectedOption === 'B') {
+            } else if (protectionType === 'singleB') {
+                const protection = Math.min(multiBetStake, maxBetReturn);
                 strategyHtml = `
                     <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
                         ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
                         <h3>Multi-Bet B (Protected) 🛡️</h3>
                         <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
                         <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
-                        <div class="potential-return">Protection: ${currentActualReturn.toFixed(2)} if fails</div>
-                    </div>
-                    <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
-                        ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
-                        <h3>Hedge Bet A</h3>
-                        <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
-                    </div>
-                `;
-            } else if (protectedOption === 'none-B') {
-                strategyHtml = `
-                    <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
-                        ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
-                        <h3>Multi-Bet B</h3>
-                        <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
-                        <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
+                        <div class="potential-return">Protection: ${protection.toFixed(2)} if fails</div>
                     </div>
                     <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
                         ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
@@ -1178,16 +1297,24 @@
                     </div>
                 `;
             } else {
+                if (multiBetOdds === oddsA) {
+                    multiBetLabel = 'Multi-Bet A';
+                    hedgeBetLabel = 'Hedge Bet B';
+                } else {
+                    multiBetLabel = 'Multi-Bet B';
+                    hedgeBetLabel = 'Hedge Bet A';
+                }
+                
                 strategyHtml = `
                     <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
                         ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
-                        <h3>Multi-Bet A</h3>
+                        <h3>${multiBetLabel}</h3>
                         <div class="bet-amount">${multiBetStake.toFixed(2)}</div>
                         <div class="potential-return">Odds: ${multiBetOdds} | Return: ${multiBetReturn.toFixed(2)}</div>
                     </div>
                     <div class="strategy-card ${isOptimal ? 'optimal' : ''}">
                         ${isOptimal ? '<div class="optimal-badge">OPTIMAL</div>' : ''}
-                        <h3>Hedge Bet B</h3>
+                        <h3>${hedgeBetLabel}</h3>
                         <div class="bet-amount">${hedgeStake.toFixed(2)}</div>
                         <div class="potential-return">Odds: ${hedgeOdds} | Return: ${hedgeReturn.toFixed(2)}</div>
                     </div>
@@ -1219,186 +1346,108 @@
                 <h4 style="margin-bottom: 20px; color: #333; text-align: center;">📊 Detailed Profit/Loss Analysis</h4>
             `;
             
-            if (protectedOption === 'A') {
-                summaryHtml += `
-                    <div class="scenario-box scenario-win">
-                        <div class="scenario-header">
-                            <div class="scenario-title">✅ If Option A Wins</div>
-                        </div>
-                        <div class="scenario-body">
-                            <div class="calculation-grid">
-                                <div class="calculation-item positive">
-                                    <span class="calc-label">Multi-bet profit</span>
-                                    <span class="calc-formula">${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${scenarios.aWins.multiBetProfit.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item negative">
-                                    <span class="calc-label">Hedge bet loss</span>
-                                    <span class="calc-formula">-${hedgeStake.toFixed(2)}</span>
-                                    <span class="calc-result negative">-${hedgeStake.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item neutral">
-                                    <span class="calc-label">Protection used</span>
-                                    <span class="calc-formula">N/A</span>
-                                    <span class="calc-result neutral">$0</span>
-                                </div>
-                            </div>
-                            <div class="total-result">
-                                <div class="total-label">Total Profit</div>
-                                <div class="total-amount">${scenarios.aWins.total.toFixed(2)}</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="scenario-box scenario-lose">
-                        <div class="scenario-header">
-                            <div class="scenario-title">🛡️ If Option A Loses (Protected)</div>
-                        </div>
-                        <div class="scenario-body">
-                            <div class="calculation-grid">
-                                <div class="calculation-item negative">
-                                    <span class="calc-label">Multi-bet loss</span>
-                                    <span class="calc-formula">-${multiBetStake.toFixed(2)}</span>
-                                    <span class="calc-result negative">-${multiBetStake.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item positive">
-                                    <span class="calc-label">Hedge bet profit</span>
-                                    <span class="calc-formula">${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${scenarios.aLoses.hedgeProfit.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item positive">
-                                    <span class="calc-label">Protection refund ${currentActualReturn === maxBetReturn ? '(capped)' : ''}</span>
-                                    <span class="calc-formula">+${currentActualReturn.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${currentActualReturn.toFixed(2)}</span>
-                                </div>
-                            </div>
-                            <div class="total-result">
-                                <div class="total-label">Total Result</div>
-                                <div class="total-amount">${scenarios.aLoses.total.toFixed(2)}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (protectedOption === 'B') {
-                summaryHtml += `
-                    <div class="scenario-box scenario-win">
-                        <div class="scenario-header">
-                            <div class="scenario-title">✅ If Option B Wins</div>
-                        </div>
-                        <div class="scenario-body">
-                            <div class="calculation-grid">
-                                <div class="calculation-item positive">
-                                    <span class="calc-label">Multi-bet profit</span>
-                                    <span class="calc-formula">${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${scenarios.bWins.multiBetProfit.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item negative">
-                                    <span class="calc-label">Hedge bet loss</span>
-                                    <span class="calc-formula">-${hedgeStake.toFixed(2)}</span>
-                                    <span class="calc-result negative">-${hedgeStake.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item neutral">
-                                    <span class="calc-label">Protection used</span>
-                                    <span class="calc-formula">N/A</span>
-                                    <span class="calc-result neutral">$0</span>
-                                </div>
-                            </div>
-                            <div class="total-result">
-                                <div class="total-label">Total Profit</div>
-                                <div class="total-amount">${scenarios.bWins.total.toFixed(2)}</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="scenario-box scenario-lose">
-                        <div class="scenario-header">
-                            <div class="scenario-title">🛡️ If Option B Loses (Protected)</div>
-                        </div>
-                        <div class="scenario-body">
-                            <div class="calculation-grid">
-                                <div class="calculation-item negative">
-                                    <span class="calc-label">Multi-bet loss</span>
-                                    <span class="calc-formula">-${multiBetStake.toFixed(2)}</span>
-                                    <span class="calc-result negative">-${multiBetStake.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item positive">
-                                    <span class="calc-label">Hedge bet profit</span>
-                                    <span class="calc-formula">${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${scenarios.bLoses.hedgeProfit.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item positive">
-                                    <span class="calc-label">Protection refund ${currentActualReturn === maxBetReturn ? '(capped)' : ''}</span>
-                                    <span class="calc-formula">+${currentActualReturn.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${currentActualReturn.toFixed(2)}</span>
-                                </div>
-                            </div>
-                            <div class="total-result">
-                                <div class="total-label">Total Result</div>
-                                <div class="total-amount">${scenarios.bLoses.total.toFixed(2)}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                // Standard hedging scenarios (no protection)
-                const firstScenarioKey = Object.keys(scenarios)[0];
-                const secondScenarioKey = Object.keys(scenarios)[1];
-                const firstScenario = scenarios[firstScenarioKey];
-                const secondScenario = scenarios[secondScenarioKey];
+            // Generate scenario boxes based on protection type
+            Object.keys(scenarios).forEach((scenarioKey, index) => {
+                const scenario = scenarios[scenarioKey];
+                const scenarioClass = index === 0 ? 'scenario-win' : 'scenario-lose';
+                let scenarioTitle = '';
+                
+                if (scenarioKey === 'aWins') {
+                    scenarioTitle = '✅ If Option A Wins';
+                } else if (scenarioKey === 'bWins') {
+                    scenarioTitle = '✅ If Option B Wins';
+                } else if (scenarioKey === 'aLoses') {
+                    scenarioTitle = '🛡️ If Option A Loses (Protected)';
+                } else if (scenarioKey === 'bLoses') {
+                    scenarioTitle = '🛡️ If Option B Loses (Protected)';
+                }
                 
                 summaryHtml += `
-                    <div class="scenario-box scenario-win">
+                    <div class="scenario-box ${scenarioClass}">
                         <div class="scenario-header">
-                            <div class="scenario-title">✅ If ${firstScenarioKey === 'aWins' ? 'Option A' : 'Option B'} Wins</div>
+                            <div class="scenario-title">${scenarioTitle}</div>
                         </div>
                         <div class="scenario-body">
                             <div class="calculation-grid">
-                                <div class="calculation-item positive">
-                                    <span class="calc-label">Multi-bet profit</span>
-                                    <span class="calc-formula">${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${firstScenario.multiBetProfit.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item negative">
-                                    <span class="calc-label">Hedge bet loss</span>
-                                    <span class="calc-formula">-${hedgeStake.toFixed(2)}</span>
-                                    <span class="calc-result negative">-${hedgeStake.toFixed(2)}</span>
-                                </div>
+                `;
+                
+                if (scenario.multiBetProfit !== undefined) {
+                    summaryHtml += `
+                        <div class="calculation-item positive">
+                            <span class="calc-label">Multi-bet profit</span>
+                            <span class="calc-formula">${multiBetReturn.toFixed(2)} - ${multiBetStake.toFixed(2)}</span>
+                            <span class="calc-result positive">+${scenario.multiBetProfit.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                
+                if (scenario.multiBetLoss !== undefined) {
+                    summaryHtml += `
+                        <div class="calculation-item negative">
+                            <span class="calc-label">Multi-bet loss</span>
+                            <span class="calc-formula">-${multiBetStake.toFixed(2)}</span>
+                            <span class="calc-result negative">-${multiBetStake.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                
+                if (scenario.hedgeLoss !== undefined) {
+                    summaryHtml += `
+                        <div class="calculation-item negative">
+                            <span class="calc-label">Hedge bet loss</span>
+                            <span class="calc-formula">-${hedgeStake.toFixed(2)}</span>
+                            <span class="calc-result negative">-${hedgeStake.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                
+                if (scenario.hedgeProfit !== undefined) {
+                    summaryHtml += `
+                        <div class="calculation-item positive">
+                            <span class="calc-label">Hedge bet profit</span>
+                            <span class="calc-formula">${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)}</span>
+                            <span class="calc-result positive">+${scenario.hedgeProfit.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                
+                if (scenario.protectionGained !== undefined && scenario.protectionGained > 0) {
+                    const isCapped = scenario.protectionGained === maxBetReturn;
+                    summaryHtml += `
+                        <div class="calculation-item positive">
+                            <span class="calc-label">Protection refund ${isCapped ? '(capped)' : ''}</span>
+                            <span class="calc-formula">+${scenario.protectionGained.toFixed(2)}</span>
+                            <span class="calc-result positive">+${scenario.protectionGained.toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                
+                if (scenario.protectionUsed !== undefined && scenario.protectionUsed === 0) {
+                    summaryHtml += `
+                        <div class="calculation-item neutral">
+                            <span class="calc-label">Protection used</span>
+                            <span class="calc-formula">N/A</span>
+                            <span class="calc-result neutral">$0</span>
+                        </div>
+                    `;
+                }
+                
+                summaryHtml += `
                             </div>
                             <div class="total-result">
-                                <div class="total-label">Total Profit</div>
-                                <div class="total-amount">${firstScenario.total.toFixed(2)}</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="scenario-box scenario-lose">
-                        <div class="scenario-header">
-                            <div class="scenario-title">❌ If ${secondScenarioKey === 'aWins' ? 'Option A' : 'Option B'} Wins</div>
-                        </div>
-                        <div class="scenario-body">
-                            <div class="calculation-grid">
-                                <div class="calculation-item negative">
-                                    <span class="calc-label">Multi-bet loss</span>
-                                    <span class="calc-formula">-${multiBetStake.toFixed(2)}</span>
-                                    <span class="calc-result negative">-${multiBetStake.toFixed(2)}</span>
-                                </div>
-                                <div class="calculation-item positive">
-                                    <span class="calc-label">Hedge bet profit</span>
-                                    <span class="calc-formula">${hedgeReturn.toFixed(2)} - ${hedgeStake.toFixed(2)}</span>
-                                    <span class="calc-result positive">+${secondScenario.hedgeProfit.toFixed(2)}</span>
-                                </div>
-                            </div>
-                            <div class="total-result">
-                                <div class="total-label">Total Result</div>
-                                <div class="total-amount">${secondScenario.total.toFixed(2)}</div>
+                                <div class="total-label">Total ${scenario.total >= 0 ? 'Profit' : 'Result'}</div>
+                                <div class="total-amount">${scenario.total.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
                 `;
-            }
+            });
             
             summaryDiv.innerHTML = summaryHtml;
         }
+        
+        // Initialize protection status on page load
+        updateProtectionStatus();
     </script>
 </body>
 </html>
